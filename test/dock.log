@@ -1,0 +1,7 @@
+options:
+{'zeroneg': True, 'show': True, 'propose': 100000, 'score_correction': True, 'hits': 'OnlyHits_MTase.txt', 'title': 'test', 'i': 'MTase_fragment_Dock_best.maegz', 'cl': 7, 'm': -1.0, 'o': 'dock.csv', '1': '-o', 'p': 10.0, 'score': True, 'skip': 1}
+
+Saved loadings to dock_loading.csv
+Saved cluster/PCA info to dock.csv
+
+*****Process Complete.*****
