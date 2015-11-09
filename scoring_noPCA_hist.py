@@ -1,6 +1,6 @@
 import numpy as np
 import schrodinger.structure as structure
-import matplotlib.pyplot as plt
+import csv
 
 def score_func(a, b, coef):
     dist = np.linalg.norm(a-b, 2)
@@ -54,16 +54,32 @@ def scoring_noPCA_hist(inter_array,outputfile,plus,minus,propose,zeroneg=False,c
             elif ishit[i]<=0 and ishit[j]<=0:
                 nn[mk_index(i,j)]+=1
 
+    pp = [float(x)/sum(pp) for x in pp]
+    pn = [float(x)/sum(pn) for x in pn]
+    nn = [float(x)/sum(nn) for x in nn]
+
+    """
     X = [i+0.5 for i in range(20)]
     plt.bar(x,pp, label="active-active", color = "blue")
     plt.bar(x,pn, label="active-inactive", color = "red")
+    plt.xlabel("Distance",fontsize=14)
+    plt.ylabel("Percentage",fontsize=14)
+    plt.xticks([i for i in range(20)])
     plt.title(outputfile+"_active")
     plt.savefig(outputfile+"_a.eps")
 
-    plt.clear
+    plt.clf()
     plt.bar(x,nn, label="inactive-inactive", color = "blue")
     plt.bar(x,pn, label="inactive-active", color = "red")
+    plt.xlabel("Distance",fontsize=14)
+    plt.ylabel("Percentage",fontsize=14)
+    plt.xticks([i for i in range(20)])
     plt.title(outputfile+"_inactive")
     plt.savefig(outputfile+"_i.eps")
-    
+    """
+    with open(outputfile, 'w') as f_out:
+        csvWriter = csv.writer(f_out)
+        csvWriter.writerow(pp)
+        csvWriter.writerow(pn)
+        csvWriter.writerow(nn)
 

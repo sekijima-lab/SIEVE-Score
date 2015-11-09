@@ -17,7 +17,7 @@ def plot_ROC(n_actives,n_decoys, title, fname, results, show):
         ys.append(y)
         scores.append(score)
 
-    plt.figure(figsize=(8,8), dpi=150)
+    plt.figure(figsize=(4,4), dpi=150)
     SetupROCCurvePlot(plt,title)
 
     aucs = []
@@ -70,8 +70,8 @@ def SetupROCCurvePlot(plt,title):
 
     plt.xlabel("False Positive rate", fontsize=14)
     plt.ylabel("True Positive rate", fontsize=14)
-    plt.title("ROC Curve ("+title+")", fontsize=14)
-    
+    #plt.title("ROC Curve ("+title+")", fontsize=14)
+    plt.title(title[2:], fontsize=14)
 def AddROCCurve(plt, actives, scores, color, label, n_actives, n_decoys):
     tpr, fpr = GetRates(actives, scores, n_actives, n_decoys)
     #print(actives,label)
@@ -99,7 +99,7 @@ def SaveROCCurvePlot(plt, fname, show, randomline=True):
 
     plt.xlim(0.0, 1.0)
     plt.ylim(0.0, 1.0)
-    plt.legend(fontsize=10, loc='best')
+    #plt.legend(fontsize=10, loc='best')
     plt.tight_layout()
     plt.savefig(fname)
     if show:

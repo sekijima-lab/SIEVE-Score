@@ -11,7 +11,7 @@ def glide_KMeans_parameter(x):
 
     #print(inter_array)
     #analyze, visualize
-   
+
     scoring_noPCA(inter_array,x['o'],x['p'],x['m'],x['propose'],
                         x['zeroneg'],x['score_correction'])
         #save_to_maegz(x['i'],labels,score)
@@ -33,7 +33,16 @@ if __name__ == '__main__':
                       'cl': 5, 'skip': 1, 'title': None,
                       'p': 1, 'm': -1, 'propose': 1000, 'show': True,
                       'score': True, 'zeroneg':False, 'score_correction':False}
+
     option = Input(default_option,sys.argv)
+
+    try:
+        actives = sum(1.0 for line in open(option["actives"]))
+        decoys = sum(1.0 for line in open(option["decoys"]))
+        option['p'] = decoys/actives
+    except:
+        option['p'] = 1.0
+
     x = option
     with open(splitext(x['o'])[0]+'.log','w') as f_log:
         f_log.write('options:\n'+str(x)+'\n')
