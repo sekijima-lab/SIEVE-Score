@@ -1,14 +1,16 @@
 def Input_func(options,argv):
-    for x in [y for y in argv if y[0]=='-']:
-        option_name = x[1:]
-        options[option_name] = argv[argv.index(x) + 1]
+    for i,x in enumerate(options.argv):
+        if x.startswith("-"):
+            option_name = x[1:]
+            if option_name == "i":
+                options[options_name].append(argv[i+1])
+            else:
+                options[option_name] = argv[i+1]
 
-    Check_options(options)
-    
-    return options
+    return Check_options(options)
 
 def Check_options(options):
-    if options['i'] == None:
+    if options['i'] == []:
         print('No input assigned. quit.')
         quit()
 
@@ -19,19 +21,30 @@ def Check_options(options):
     if options['title'] == None:
         options['title'] = options['i']
 
-    tf = ['show', 'score', 'zeroneg', 'score_correction']
+    tf = ['show', 'score', 'zeroneg', 'score_correction', 'p_opt']
     for x in tf:
         if options[x] in ['False', 'false', 'No', 'no', '0']:
             options[x] = False
         else:
             options[x] = True
 
-    ints = ['cl', 'skip', 'propose']
+    ints = ['cl', 'skip', 'propose', 'cutoff']
     for x in ints:
-        options[x] = int(options[x])
+        if x in options.keys():
+            options[x] = int(options[x])
 
-    floats = ['p', 'm']
+    floats = ['p', 'm', 'threshold']
     for x in floats:
-        options[x] = float(options[x])
+        if x in options.keys():
+            options[x] = float(options[x])
+
+    if options['p_opt'] == 'True':
+            try:
+        actives = sum(1.0 for line in open(options["actives"]))
+        decoys = sum(1.0 for line in open(options["decoys"]))
+        options['p'] = decoys/actives
+    except KeyError:
+        option['p'] = 1.0
+
 
     return options

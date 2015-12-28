@@ -1,9 +1,11 @@
 from sklearn.metrics import roc_curve, roc_auc_score
 import csv
 import matplotlib.pyplot as plt
+from os.path import splitext
 
-def plot_ROC(n_actives,n_decoys, title, fname, results, show):
-    colors = ['b','g','b','g','r','c','m','y','k']
+def plot_ROC(n_actives,n_decoys, title, outputname,
+            results, show):
+    colors = ['b','g','r','c','m','y','k']
 
     results_file=results[0::3]
     results_type=results[1::3]
@@ -24,10 +26,28 @@ def plot_ROC(n_actives,n_decoys, title, fname, results, show):
     for i in range(len(results_file)):
         aucs.append(AddROCCurve(plt, ys[i], scores[i], colors[i], results_name[i], n_actives, n_decoys))
     
-    SaveROCCurvePlot(plt, fname, show, True)
-    with open("./result.txt","w") as f_result:
+    SaveROCCurvePlot(plt, outputname, show, True)
+    with open(splitext(outputfile)[0]+'result.txt',"w")\
+             as f_result:
+        
+        auc_sp = 0
+        auc_proposed = 0
         for i in range(len(results_file)):
-            f_result.write(results_name[i]+", "+str(aucs[i])+"\n")
+            f_result.write(results_name[i]+
+                            ", "+str(aucs[i])+"\n")
+            if results_name[i]=='Glide_SP':
+                auc_sp = aucs[i]
+            elif 'proposed' in results_name[i]:
+                auc_proposed = aucs[i]
+
+        if auc_sp == 0 or auc_proposed == 0:
+            f_result.write("Cannot compared.")
+        elif auc_proposed - auc_sp > 0.001:
+            f_result.write("proposed win!")
+        elif auc_proposed - auc_sp < -0.001:
+            f_result.write("proposed lose...")
+        else:
+            f_result.write("draw")
 
 def GetYScoreFromResult(filename,datatype):
     y=[]
@@ -91,7 +111,7 @@ def AddROCCurve(plt, actives, scores, color, label, n_actives, n_decoys):
         plt.plot(fpr, tpr, color=color, linewidth=2, label=label)
     return auc
 
-def SaveROCCurvePlot(plt, fname, show, randomline=True):
+def SaveROCCurvePlot(plt, outputname, show, randomline=True):
 
     if randomline:
         x = [0.0, 1.0]
@@ -101,7 +121,7 @@ def SaveROCCurvePlot(plt, fname, show, randomline=True):
     plt.ylim(0.0, 1.0)
     #plt.legend(fontsize=10, loc='best')
     plt.tight_layout()
-    plt.savefig(fname)
+    plt.savefig(outputname)
     if show:
         plt.show()
     
@@ -116,7 +136,7 @@ if __name__ == '__main__':
     n_actives = int(x[1])
     n_decoys = int(x[2])
     title = x[3]
-    fname = x[4]
+    outputname = x[4]
 
     show = x[5]
     if show in ["False", "false", "0", "No", "no"]:
@@ -126,6 +146,7 @@ if __name__ == '__main__':
 
     results = x[6:]
 
-    plot_ROC(n_actives,n_decoys,title,fname,results, show)
+    plot_ROC(n_actives,n_decoys,title,outputname,
+            results, show)
     
 

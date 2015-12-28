@@ -52,22 +52,23 @@ def plot(pca,inter_array,labels,n_clus,outputfile, skip, graph_title, show):
             disp = np.multiply(cond, skipping)
             if np.any(cond):
                 plt.scatter(pca[disp, x_axis],pca[disp, y_axis],\
-                            c=c, label='#'+str(clus_num), s=20, marker='^')
+                            c='red', label='#'+str(clus_num), s=20, marker='^')
         for c, clus_num in zip(colors, range(n_clus)):
             cond = np.multiply(labels==clus_num,ishit < 0)
             if np.any(cond):
                 plt.scatter(pca[cond, x_axis],pca[cond, y_axis],\
-                            c=c, s=50, marker='x')
+                            c='red', s=50, marker='x')
         for c, clus_num in zip(colors, range(n_clus)):
             cond = np.multiply(labels==clus_num,ishit > 0)
             if np.any(cond):
                 plt.scatter(pca[cond, x_axis],pca[cond, y_axis],\
-                            c=c, s=50, marker='o')
+                            c='blue', s=50, marker='o')
 
-        plt.title(graph_title+", K-means clustering")
+        #plt.title(graph_title+", K-means clustering")
+        plt.title(graph_title)
         plt.xlabel("PC"+str(x_axis+1),fontsize=16)
         plt.ylabel("PC"+str(y_axis+1),fontsize=16)
-        plt.legend(fontsize=10)
+        #plt.legend(fontsize=10)
 
     skipping = [True if i%skip==0 else False for i in range(pca[:,0].size)]
     skipping = np.array(skipping)
@@ -95,11 +96,21 @@ if __name__ == '__main__':
     from options import Input_func as Input
 
     #options.py
-    default_option = {'i': None, 'o': None, 'hits': 'hits.txt',
+    default_option = {'i': [], 'o': None, 'hits': 'hits.txt',
                       'cl': 5, 'skip': 1, 'title': None,
                       'p': 1, 'm': -1, 'propose': 1000, 'show': True,
                       'score': True, 'zeroneg':False, 'score_correction':False}
-    option = Input(default_option,sys.argv)
+
+    if "-file" in sys.argv:
+        option_file = argv[argv.index("-file") + 1]
+        o = open(option_file, 'r').readlines()
+        o = [_.replace("\n","") for _ in o]
+            
+    else:
+        o = sys.argv
+
+    option = Input(default_option,o)
+
     x = option
     with open(splitext(x['o'])[0]+'.log','w') as f_log:
         f_log.write('options:\n'+str(x)+'\n')

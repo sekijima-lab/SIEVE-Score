@@ -12,8 +12,9 @@ def glide_KMeans_parameter(x):
     #print(inter_array)
     #analyze, visualize
 
-    scoring_noPCA(inter_array,x['o'],x['p'],x['m'],x['propose'],
-                        x['zeroneg'],x['score_correction'])
+    sim = scoring_noPCA(inter_array,x['o'],x['p'],x['m'],x['propose'],
+                        x['cutoff'],x['zeroneg'],
+                        x['score_correction'],x['threshold'])
         #save_to_maegz(x['i'],labels,score)
 
     #plot(pca, inter_array, labels, x['cl'], x['o'],
@@ -32,7 +33,8 @@ if __name__ == '__main__':
     default_option = {'i': None, 'o': None, 'hits': 'hits.txt',
                       'cl': 5, 'skip': 1, 'title': None,
                       'p': 1, 'm': -1, 'propose': 1000, 'show': True,
-                      'score': True, 'zeroneg':False, 'score_correction':False}
+                      'score': True, 'zeroneg':False, 'score_correction':False,
+                      'cutoff': 1, 'threshold': 1.0}
 
     option = Input(default_option,sys.argv)
 
