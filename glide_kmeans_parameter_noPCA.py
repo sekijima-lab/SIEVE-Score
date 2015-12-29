@@ -15,7 +15,7 @@ def glide_KMeans_parameter(x):
     sim = scoring_noPCA(inter_array,x['o'],x['p'],x['m'],x['propose'],
                         x['cutoff'],x['zeroneg'],
                         x['score_correction'],x['threshold'])
-        #save_to_maegz(x['i'],labels,score)
+    #save_to_maegz(x['i'],labels,score)
 
     #plot(pca, inter_array, labels, x['cl'], x['o'],
             #x['skip'], x['title'], x['show'])
@@ -30,20 +30,22 @@ if __name__ == '__main__':
     from options import Input_func as Input
 
     #options.py
-    default_option = {'i': None, 'o': None, 'hits': 'hits.txt',
+    default_option = {'i': [], 'o': None, 'hits': 'hits.txt',
                       'cl': 5, 'skip': 1, 'title': None,
                       'p': 1, 'm': -1, 'propose': 1000, 'show': True,
                       'score': True, 'zeroneg':False, 'score_correction':False,
-                      'cutoff': 1, 'threshold': 1.0}
+                      'cutoff': 1, 'threshold': 1.0, 'p_opt': False,
+                      'f_active':None}
 
-    option = Input(default_option,sys.argv)
+    if "-file" in sys.argv:
+        option_file = sys.argv[sys.argv.index("-file") + 1]
+        o = open(option_file, 'r').readlines()
+        o = [_.replace("\n","") for _ in o]
+        o = o + sys.argv
+    else:
+        o = sys.argv
 
-    try:
-        actives = sum(1.0 for line in open(option["actives"]))
-        decoys = sum(1.0 for line in open(option["decoys"]))
-        option['p'] = decoys/actives
-    except:
-        option['p'] = 1.0
+    option = Input(default_option,o)
 
     x = option
     with open(splitext(x['o'])[0]+'.log','w') as f_log:

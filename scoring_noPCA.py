@@ -34,6 +34,8 @@ def scoring_noPCA(inter_array,outputfile,plus,minus,propose,
     nonhits_xyz = data[nonhits,3:].astype('float')
     known_xyz = np.r_[hits_xyz, nonhits_xyz]
 
+    cos_sim = 1
+    """
     #print(numhits,plus,minus,known_xyz.shape)
 #calculate positive-negative distance histgram
     pp = []
@@ -88,6 +90,7 @@ def scoring_noPCA(inter_array,outputfile,plus,minus,propose,
                         'We did not change the result of glide.')
         return cos_sim
     
+    """
 #else: calculate score
         
     score = np.zeros(data.shape[0])

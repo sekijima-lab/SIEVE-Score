@@ -1,7 +1,8 @@
 from schrodinger import structure
 import numpy as np
+from os.path import splitext
 
-def read_interaction_file(inputfile, hits, result):
+def read_interaction_file(inputfile, residues, hits, result):
     reader = structure.StructureReader(inputfile)
     for st in reader:
         prop = st.property
@@ -9,7 +10,7 @@ def read_interaction_file(inputfile, hits, result):
 
         if 'r_i_docking_score' not in prop.keys(): #protein? error?
             continue
-        
+
         inter.append(prop['s_m_title'])
 
         if hits != None and prop['s_m_title'] in hits['title']:
@@ -50,15 +51,38 @@ def read_interaction(inputfiles,hitsfile):
 
     reader.close()
 
-    try:
-        hits = np.loadtxt(hitsfile, delimiter=',', comments='#',
-               dtype={'names': ('title', 'ishit'), 'formats': ('S16', '<i2')})
-        if hits.shape == ():
-            hits = np.array([hits])
-    except IOError:
-        hits = None
+    if splitext(hitsfile)[1] in [".mae", ".maegz"]:
+        hits = read_label(hitsfile, 1)
+
+    else:
+        try:
+            hits = np.loadtxt(hitsfile, delimiter=',', comments='#',
+                              dtype={'names': ('title', 'ishit'), 
+                                     'formats': ('S16', '<i2')})
+            if hits.shape == ():
+                hits = np.array([hits])
+            print(hits)
+        except IOError:
+            hits = None
 
     for f in inputfiles:
-        result = xread_interaction_file(f, hits, result)
+        result = read_interaction_file(f, residues, hits, result)
     
     return result
+
+
+ def read_label(hitsfile,label):
+    reader = structure.StructureReader(hitsfile)
+    for st in reader: 
+        hits = []
+        prop = st.property
+        if 'r_i_docking_score' in prop.keys(): #protein? error?
+            hits.append([prop['s_m_title'],label])
+        
+    hits = np.array(hits, dtype={'names': ('title', 'ishit'),
+                                 'formats': ('S16', '<i2')
+                                 })
+    if hits.shape == ():
+        hits = np.array([hits])
+
+    return hits

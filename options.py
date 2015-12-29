@@ -1,11 +1,11 @@
-def Input_func(options,argv):
-    for i,x in enumerate(options.argv):
+def Input_func(options,settings):
+    for i,x in enumerate(settings):
         if x.startswith("-"):
             option_name = x[1:]
             if option_name == "i":
-                options[options_name].append(argv[i+1])
+                options[option_name].append(settings[i+1])
             else:
-                options[option_name] = argv[i+1]
+                options[option_name] = settings[i+1]
 
     return Check_options(options)
 
@@ -23,7 +23,7 @@ def Check_options(options):
 
     tf = ['show', 'score', 'zeroneg', 'score_correction', 'p_opt']
     for x in tf:
-        if options[x] in ['False', 'false', 'No', 'no', '0']:
+        if options[x] in [False, 'False', 'false', 'No', 'no', '0']:
             options[x] = False
         else:
             options[x] = True
@@ -39,12 +39,12 @@ def Check_options(options):
             options[x] = float(options[x])
 
     if options['p_opt'] == 'True':
-            try:
-        actives = sum(1.0 for line in open(options["actives"]))
-        decoys = sum(1.0 for line in open(options["decoys"]))
-        options['p'] = decoys/actives
-    except KeyError:
-        option['p'] = 1.0
+        try:
+            actives = sum(1.0 for line in open(options["actives"]))
+            decoys = sum(1.0 for line in open(options["decoys"]))
+            options['p'] = decoys/actives
+        except KeyError:
+            option['p'] = 1.0
 
 
     return options
