@@ -1,15 +1,11 @@
 from sklearn.metrics import roc_curve, roc_auc_score
 import csv
-import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from os.path import splitext
-import sys
 
 def plot_ROC(n_actives,n_decoys, title, fname, results,
              legend, show, glidefile):
-    colors = ['b','g','m','r']
-    #colors= ['b', 'm', 'r']
+    colors = ['b','g','b','g','r','c','m','y','k']
 
     results_file=results[0::3]
     results_type=results[1::3]
@@ -28,7 +24,7 @@ def plot_ROC(n_actives,n_decoys, title, fname, results,
         scores.append(score)
         data_types.append(t)
 
-    plt.figure(figsize=(6,6), dpi=150)
+    plt.figure(figsize=(8,8), dpi=150)
     SetupROCCurvePlot(plt,title)
 
     aucs = []
@@ -87,30 +83,21 @@ def GetYScoreFromResult(filename,datatype,glide_y, glide_score):
         print("postprocess was cancelled. auc is the same as glide SP.")
         return glide_y, glide_score, "dock"
     
-    if ('dock' in datatype or
-        'fp'   in datatype):
+    if 'dock' in datatype:
         #print(filename)
         for line in data:
-            try:
-                score.append(float(line[1]))
-            except ValueError:
-                continue
-                #legend line?
-
             if "ZINC" in line[0] or "TEMP" in line[0]:
                 y.append(0)
             else:
-                y.append(1)            
-
+                y.append(1)
+            
+            score.append(float(line[1]))
     
-    elif datatype=='stat':
+    else:
+    #datatype=='stat':
         for line in data:
             y.append(int(line[3]))
             score.append(float(line[2]))
-
-    else:
-        print('unknown datatype.')
-        sys.exit()
 
     return y, score, datatype
 
@@ -143,40 +130,37 @@ def SetupROCCurvePlot(plt,title):
     
 def AddROCCurve(plt, actives, scores, color, label, n_actives, n_decoys, type):
     tpr, fpr = GetRates(actives, scores, n_actives, n_decoys)
-    
+    #print(actives,label)
     if "dock" in type:
         scores = [-x for x in scores] #reverse order
+    #print(tpr)
 
     auc_tmp = roc_auc_score(actives, scores)
-    auc = round((auc_tmp*tpr[-2]*fpr[-2] +
-                 (tpr[-2]+1)*(1-fpr[-2])/2.0)
-                ,3)
+    auc_tmp = (auc_tmp*tpr[-1])#+((1-fpr[-1])*tpr[-1]) #adjust final position
+    auc = round(auc_tmp,3)
 
     ef_10 = tpr[len(tpr)//10]*10
     ef_1  = tpr[len(tpr)//100]*100
     label = label+", auc="+str(auc)
 
-    if "dock" in type:
-        linestyle = '--'
+    if "Glide" in label:
+        plt.plot(fpr, tpr, linestyle='dashed', color=color,
+                 linewidth=2, label=label)
     else:
-        linestyle = '-'
-
-    plt.plot(fpr, tpr, linestyle=linestyle,
-             color=color, linewidth=2, label=label)
-
+        plt.plot(fpr, tpr, color=color, linewidth=2, label=label)
     return auc, ef_10, ef_1
 
 def SaveROCCurvePlot(plt, fname, show, legend, randomline=True):
 
     if randomline:
         x = [0.0, 1.0]
-        plt.plot(x, x, linestyle='--', color='k',
+        plt.plot(x, x, linestyle='dashed', color='red',
                  linewidth=2, label='random')
 
     plt.xlim(0.0, 1.0)
     plt.ylim(0.0, 1.0)
     if legend:
-        plt.legend(fontsize=12, loc='best')
+        plt.legend(fontsize=10, loc='best')
 
     plt.tight_layout()
     plt.savefig(fname)

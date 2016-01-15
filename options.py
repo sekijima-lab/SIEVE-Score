@@ -1,11 +1,12 @@
 def Input_func(options,settings):
     for i,x in enumerate(settings):
+        x=x.strip()
         if x.startswith("-"):
             option_name = x[1:]
             if option_name == "i":
-                options[option_name].append(settings[i+1])
+                options[option_name].append(settings[i+1].strip())
             else:
-                options[option_name] = settings[i+1]
+                options[option_name] = settings[i+1].strip()
 
     return Check_options(options)
 
@@ -38,13 +39,12 @@ def Check_options(options):
         if x in options.keys():
             options[x] = float(options[x])
 
-    if options['p_opt'] == 'True':
+    if options['p_opt']:
         try:
             actives = sum(1.0 for line in open(options["actives"]))
             decoys = sum(1.0 for line in open(options["decoys"]))
             options['p'] = decoys/actives
-        except KeyError:
-            option['p'] = 1.0
-
+        except IOError:
+            pass
 
     return options

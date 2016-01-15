@@ -4,7 +4,7 @@ import numpy as np
 from read_interaction import read_interaction
 from scoring import scoring
 
-def SIEVE(x)
+def SIEVE(x):
     inter_array = np.array(read_interaction(x['i'],x['hits']))
     interactions = np.array(inter_array[1:,2:],dtype='float')
 
@@ -25,11 +25,11 @@ if __name__ == '__main__':
 
     #options.py
     default_option = {'i': [], 'o': None, 'hits': 'hits.txt',
-                      'cl': 5, 'skip': 1, 'title': None,
-                      'p': 1, 'm': -1, 'propose': 1000, 'show': True,
-                      'score': True, 'zeroneg':False, 'score_correction':False,
-                      'cutoff': 1, 'threshold': 1.0, 'p_opt': False,
-                      'f_active':None}
+                      'cutoff': 1,'threshold': 1.0,
+                      'zeroneg':False, 'score_correction':False,
+                      'p': 1, 'm': -1,'p_opt': False,
+                      'actives':None, 'decoys':None, 'propose':100000
+                      }
 
     if "-file" in sys.argv:
         option_file = sys.argv[sys.argv.index("-file") + 1]

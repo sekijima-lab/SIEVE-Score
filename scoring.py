@@ -1,19 +1,15 @@
 import numpy as np
-import schrodinger.structure as structure
 
-def score_func(a, b, coef):
-    dist=np.linalg.norm(a-b, 2)
-    coed = float(coef)
-    if dist < 1:
-        return coef
-    else:
-        return coef / dist
+def score_func(a, b, coef, cutoff):
+    dist = np.linalg.norm(a-b, 2)
+    return coef / max(dist, cutoff)
 
-def scoring(result,outputfile,plus,minus,propose,zeroneg=False,correction=False):
-    data  = result[1:,:]
+def scoring(inter_array,outputfile,plus,minus,propose,
+                  cutoff,zeroneg,correction,threshold):
+    data  = inter_array[1:,:]
     title = data[:,0]
     ishit = data[:,1].astype('int')
-    xyz   = data[:,3:6].astype('float')   
+    xyz   = data[:,3:].astype('float')   
 
     hits  = np.array([True if x>0 else False for x in ishit])
     if zeroneg==False:
@@ -22,13 +18,14 @@ def scoring(result,outputfile,plus,minus,propose,zeroneg=False,correction=False)
         nonhits=np.array([True if x<=0 else False for x in ishit])
     #<= for DUD-E set, < for others
 
-    hits_xyz = data[hits,3:6].astype('float')
+    hits_xyz = data[hits,3:].astype('float')
     numhits = ishit[hits].shape[0]
-    nonhits_xyz = data[nonhits,3:6].astype('float')
+    numnonhits = ishit[nonhits].shape[0]
+    nonhits_xyz = data[nonhits,3:].astype('float')
     known_xyz = np.r_[hits_xyz, nonhits_xyz]
 
-    print(numhits,plus,minus,known_xyz.shape)
-
+#calculate score
+        
     score = np.zeros(data.shape[0])
     if known_xyz != []: 
         for i in range(data.shape[0]):
@@ -38,7 +35,8 @@ def scoring(result,outputfile,plus,minus,propose,zeroneg=False,correction=False)
                 else:
                     load = minus
                 
-                score[i] = score[i] + score_func(xyz[i],known_xyz[j],load)
+                score[i] = score[i] +\
+                    score_func(xyz[i],known_xyz[j],load,cutoff)
 
     saved = (np.argsort(score)[::-1])[:propose] #reversed,cut
     saved_comp = title[saved]
@@ -52,27 +50,20 @@ def scoring(result,outputfile,plus,minus,propose,zeroneg=False,correction=False)
             elif saved_ishit[i]<0 or (zeroneg==True and saved_ishit[i]==0):
                 saved_score[i]-minus
             #<= for DUD-E set, < for others
-    print(saved_score)
-    result = np.dstack((saved, saved_comp, saved_score, saved_ishit))[0].astype('str')
+    result = np.dstack((saved, saved_comp,
+                        saved_score, saved_ishit))[0].astype('str')
+    print(result)
 
-    #save
-    """
-    if hit_neighbor != []:
-        out_hits = outputfile.rstrip('.csv')+'_hits_neighbor.csv'
-        np.savetxt(out_hits, hit_neighbor, fmt="%s", delimiter=",")
-    if nonhit_neighbor != []:
-        out_nonhits = outputfile.rstrip('.csv')+'_nonhits_neighbor.csv'
-        np.savetxt(out_nonhits, nonhit_neighbor, fmt="%s", delimiter=",")
-    """
     if known_xyz != []: 
-        #print('Saved hits/nonhits neighbor.')
         out_rank = outputfile
         np.savetxt(out_rank, result, fmt="%s", delimiter=",")
-        print('Saved high-score compounds.')
+        print('Saved SIEVE-Score.')
 
-    return score
+    return 1
 
 def save_to_maegz(inputfile,labels,score):
+    import schrodinger.structure as structure
+    
     reader = structure.StructureReader(inputfile)
     write_maegz = inputfile.rstrip(".maegz")+"_cluster.maegz"
     writer = structure.StructureWriter(write_maegz)
@@ -88,7 +79,7 @@ def save_to_maegz(inputfile,labels,score):
             st.property['i_Clustering_Cluster#'] = labels[index]
             st.property['i_Clustering_PCAScore'] = score[index]
             writer.append(st)
-        index=index+1
+        index+=1
 
     reader.close()
     writer.close()

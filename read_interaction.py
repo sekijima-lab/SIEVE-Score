@@ -28,6 +28,21 @@ def read_interaction_file(inputfile, residues, hits, result):
     reader.close()
     return result
 
+def read_label(hitsfile,label):
+    reader = structure.StructureReader(hitsfile)
+    for st in reader: 
+        hits = []
+        prop = st.property
+        if 'r_i_docking_score' in prop.keys(): #protein? error?
+            hits.append((prop['s_m_title'],label))
+    
+    dt = np.dtype([('title', np.str_, 16), ('ishit', np.int64, 1)])
+    hits = np.array(hits, dtype=dt)
+    if hits.shape == ():
+        hits = np.array([hits])
+
+    return hits
+
 def read_interaction(inputfiles,hitsfile):
     reader = structure.StructureReader(inputfiles[0])
 
@@ -51,38 +66,21 @@ def read_interaction(inputfiles,hitsfile):
 
     reader.close()
 
-    if splitext(hitsfile)[1] in [".mae", ".maegz"]:
+    if splitext(hitsfile)[1] in [".mae", ".maegz", ".gz"]:
         hits = read_label(hitsfile, 1)
-
+        #print(hits)
     else:
+        #print(hitsfile)
         try:
             hits = np.loadtxt(hitsfile, delimiter=',', comments='#',
                               dtype={'names': ('title', 'ishit'), 
                                      'formats': ('S16', '<i2')})
             if hits.shape == ():
                 hits = np.array([hits])
-            print(hits)
         except IOError:
             hits = None
 
     for f in inputfiles:
         result = read_interaction_file(f, residues, hits, result)
-    
+    #print(hits)
     return result
-
-
- def read_label(hitsfile,label):
-    reader = structure.StructureReader(hitsfile)
-    for st in reader: 
-        hits = []
-        prop = st.property
-        if 'r_i_docking_score' in prop.keys(): #protein? error?
-            hits.append([prop['s_m_title'],label])
-        
-    hits = np.array(hits, dtype={'names': ('title', 'ishit'),
-                                 'formats': ('S16', '<i2')
-                                 })
-    if hits.shape == ():
-        hits = np.array([hits])
-
-    return hits

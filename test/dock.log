@@ -1,7 +1,4 @@
 options:
-{'zeroneg': True, 'show': True, 'propose': 100000, 'score_correction': True, 'hits': 'OnlyHits_MTase.txt', 'title': 'test', 'i': 'MTase_fragment_Dock_best.maegz', 'cl': 7, 'm': -1.0, 'o': 'dock.csv', '1': '-o', 'p': 10.0, 'score': True, 'skip': 1}
-
-Saved loadings to dock_loading.csv
-Saved cluster/PCA info to dock.csv
+{'cutoff': 1, 'zeroneg': False, 'show': False, 'propose': 100000, 'p_opt': False, 'o': 'test/dock.csv', 'file': 'test/settings.txt', 'threshold': 1.0, 'score_correction': False, 'hits': 'test/OnlyHits_MTase.txt', 'decoys': None, 'i': ['test/MTase_fragment_Dock_best.maegz'], 'title': 'testdata', 'm': -1.0, 'actives': None, '1': '', 'p': 1.0, 'score': True}
 
 *****Process Complete.*****
