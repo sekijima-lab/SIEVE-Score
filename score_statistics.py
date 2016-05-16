@@ -1,15 +1,16 @@
 from sklearn.metrics import roc_curve, roc_auc_score
 import csv
 import matplotlib
+import math
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from os.path import splitext
-import sys
 
-def plot_ROC(n_actives,n_decoys, title, fname, results,
+
+def plot_ROC(n_actives, n_decoys, title, fname, results,
              legend, show, glidefile):
-    colors = ['b','g','m','r']
-    #colors= ['b', 'm', 'r']
+
+    plt.figure(figsize=(6,6), dpi=150)
+    SetupROCCurvePlot(plt,title)
 
     results_file=results[0::3]
     results_type=results[1::3]
@@ -18,24 +19,18 @@ def plot_ROC(n_actives,n_decoys, title, fname, results,
     ys=[]
     scores=[]
     data_types=[]
-    glide_y, glide_score, _ = GetYScoreFromResult(glidefile, 'dock', [],[])
-
     
     for i in range(len(results_file)):
-        y,score,t = GetYScoreFromResult(results_file[i], results_type[i],
-                                      glide_y, glide_score)
+        y,score,t = GetYScoreFromResult(results_file[i], results_type[i])
         ys.append(y)
         scores.append(score)
         data_types.append(t)
-
-    plt.figure(figsize=(6,6), dpi=150)
-    SetupROCCurvePlot(plt,title)
 
     aucs = []
     ef10s = []
     ef1s = []
     for i in range(len(results_file)):
-        auc, ef10, ef1 = AddROCCurve(plt, ys[i], scores[i], colors[i],
+        auc, ef10, ef1 = AddROCCurve(plt, ys[i], scores[i], i,
                          results_name[i], n_actives, n_decoys, data_types[i])
         aucs.append(auc)
         ef10s.append(ef10)
@@ -48,6 +43,7 @@ def plot_ROC(n_actives,n_decoys, title, fname, results,
 
 
 def SaveAUCEF(fname, results, aucs, ef10s, ef1s):
+    from os.path import splitext
 
     results_file=results[0::3]
     results_type=results[1::3]
@@ -77,15 +73,11 @@ def SaveAUCEF(fname, results, aucs, ef10s, ef1s):
             f_result.write("proposed, draw\n")
             
 
-def GetYScoreFromResult(filename,datatype,glide_y, glide_score):
+def GetYScoreFromResult(filename, datatype):
     y=[]
     score=[]
 
-    try:
-        data = csv.reader(open(filename, 'rb'), delimiter=',', quotechar='#')
-    except IOError:
-        print("postprocess was cancelled. auc is the same as glide SP.")
-        return glide_y, glide_score, "dock"
+    data = csv.reader(open(filename, 'rb'), delimiter=',', quotechar='#')
     
     if ('dock' in datatype or
         'fp'   in datatype):
@@ -101,16 +93,24 @@ def GetYScoreFromResult(filename,datatype,glide_y, glide_score):
                 y.append(0)
             else:
                 y.append(1)            
-
     
     elif datatype=='stat':
         for line in data:
-            y.append(int(line[3]))
-            score.append(float(line[2]))
+            try:
+                y.append(int(line[3]))
+                score.append(float(line[2]))
+            except ValueError:
+                pass
 
     else:
         print('unknown datatype.')
         sys.exit()
+
+    reverse = bool(datatype != 'dock')
+    res = zip(y,score)
+    res = sorted(res, key=lambda x:x[1], reverse=reverse)
+    y = [x[0] for x in res]
+    score = [x[1] for x in res]
 
     return y, score, datatype
 
@@ -134,6 +134,7 @@ def GetRates(y, scores, n_actives, n_decoys):
     fpr.append(1.0) # add [1.0, 1.0]
 
     return tpr, fpr
+
     
 def SetupROCCurvePlot(plt,title):
 
@@ -141,9 +142,15 @@ def SetupROCCurvePlot(plt,title):
     plt.ylabel("True Positive rate", fontsize=14)
     plt.title("ROC Curve ("+title+")", fontsize=14)
     
-def AddROCCurve(plt, actives, scores, color, label, n_actives, n_decoys, type):
+
+def AddROCCurve(plt, actives, scores, i, label, n_actives, n_decoys, type):
+
     tpr, fpr = GetRates(actives, scores, n_actives, n_decoys)
-    
+
+    colors = "rgbcmyk"
+    color = colors[i%len(colors)]
+    #colors= ['b', 'm', 'r']
+
     if "dock" in type:
         scores = [-x for x in scores] #reverse order
 
@@ -152,14 +159,24 @@ def AddROCCurve(plt, actives, scores, color, label, n_actives, n_decoys, type):
                  (tpr[-2]+1)*(1-fpr[-2])/2.0)
                 ,3)
 
-    ef_10 = tpr[len(tpr)//10]*10
-    ef_1  = tpr[len(tpr)//100]*100
+    try:
+        ef_10 = tpr[:-1][int(math.ceil((n_actives+n_decoys)/10))]*10
+    except IndexError:
+        ef_10 = tpr[-2]*10
+
+    try:
+        ef_1 = tpr[:-1][int(math.ceil((n_actives+n_decoys)/100))]*100
+    except IndexError:
+        ef_1 = tpr[-2]*100
+
     label = label+", auc="+str(auc)
 
     if "dock" in type:
         linestyle = '--'
-    else:
+    elif i<len(colors):
         linestyle = '-'
+    else:
+        linestyle = ':'
 
     plt.plot(fpr, tpr, linestyle=linestyle,
              color=color, linewidth=2, label=label)

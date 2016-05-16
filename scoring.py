@@ -1,86 +1,122 @@
 import numpy as np
+import logging
+logger = logging.getLogger(__name__)
 
-def score_func(a, b, coef, cutoff):
-    dist = np.linalg.norm(a-b, 2)
-    return coef / max(dist, cutoff)
+def scoring_main(data,labels,n_clusters,outputfile,
+                 plus,minus,propose,zeroneg,
+                 score_type, score_params):
 
-def scoring(inter_array,outputfile,plus,minus,propose,
-                  cutoff,zeroneg,correction,threshold):
-    data  = inter_array[1:,:]
-    title = data[:,0]
-    ishit = data[:,1].astype('int')
-    xyz   = data[:,3:].astype('float')   
+    score = []
 
-    hits  = np.array([True if x>0 else False for x in ishit])
-    if zeroneg==False:
-        nonhits=np.array([True if x<0 else False for x in ishit])
-    elif zeroneg==True:
-        nonhits=np.array([True if x<=0 else False for x in ishit])
-    #<= for DUD-E set, < for others
+    for k in range(n_clusters):
+        class_members = labels == k
+        x = scoring(k, data[class_members], outputfile, plus, minus,
+                    propose, zeroneg, score_type, score_params)
+        logger.info('Calc SIEVE-Score for cluster %d of %d.' 
+                     % (k+1, n_clusters))
+        logger.debug(x)
+        score=score+list(x)
 
-    hits_xyz = data[hits,3:].astype('float')
+    score=sorted(score,key=lambda x:float(x[2]))[::-1][:propose] #.astype(str)
+
+    np.savetxt(outputfile, score, fmt="%s", delimiter=",")
+    logger.info('Saved SIEVE-Score.')
+
+
+def scoring(cluster_number, data, outputfile, plus, minus, propose,
+            zeroneg, score_type, score_params):
+
+    title = data[:, 0]
+    ishit = data[:, 1].astype('int')
+    xyz = data[:, 3:].astype('float')
+
+    hits = np.array([True if x > 0 else False for x in ishit])
+    if zeroneg == False:
+        nonhits = np.array([True if x < 0 else False for x in ishit])
+    elif zeroneg == True:
+        nonhits = np.array([True if x <= 0 else False for x in ishit])
+    # <= for DUD-E testset, < for others
+
+    hits_xyz = data[hits, 3:].astype('float')
     numhits = ishit[hits].shape[0]
     numnonhits = ishit[nonhits].shape[0]
-    nonhits_xyz = data[nonhits,3:].astype('float')
+    nonhits_xyz = data[nonhits, 3:].astype('float')
     known_xyz = np.r_[hits_xyz, nonhits_xyz]
 
-#calculate score
-        
+    # calculate score
     score = np.zeros(data.shape[0])
-    if known_xyz != []: 
+
+    if numhits+numnonhits > 0:
         for i in range(data.shape[0]):
             for j in range(len(known_xyz)):
-                if j<numhits:
-                    load = plus
+                if j < numhits:
+                    multiplier = plus
                 else:
-                    load = minus
-                
-                score[i] = score[i] +\
-                    score_func(xyz[i],known_xyz[j],load,cutoff)
+                    multiplier = minus
 
-    saved = (np.argsort(score)[::-1])[:propose] #reversed,cut
-    saved_comp = title[saved]
-    saved_score = score[saved]
-    saved_ishit = ishit[saved]
-
-    if correction == True:
-        for i in range(len(saved_score)):
-            if saved_ishit[i]>0:
-                saved_score[i]-plus
-            elif saved_ishit[i]<0 or (zeroneg==True and saved_ishit[i]==0):
-                saved_score[i]-minus
-            #<= for DUD-E set, < for others
-    result = np.dstack((saved, saved_comp,
-                        saved_score, saved_ishit))[0].astype('str')
-    print(result)
-
-    if known_xyz != []: 
-        out_rank = outputfile
-        np.savetxt(out_rank, result, fmt="%s", delimiter=",")
-        print('Saved SIEVE-Score.')
-
-    return 1
-
-def save_to_maegz(inputfile,labels,score):
-    import schrodinger.structure as structure
+                score[i] += score_func(xyz[i], known_xyz[j], 
+                                       score_type, multiplier, *score_params)
     
-    reader = structure.StructureReader(inputfile)
-    write_maegz = inputfile.rstrip(".maegz")+"_cluster.maegz"
-    writer = structure.StructureWriter(write_maegz)
+        if ishit.shape[0] == 1:
+            # single-hit cluster
+            logger.warning('cluster %d: is single-hit cluster.'
+                           %cluster_number)
 
-    index=0
-    for st in reader:
-        prop = st.property
+    else:
+        #contains only unknown data
+        logger.warning('cluster %d: No known data.'%cluster_number)
 
-        if 'r_i_docking_score' not in prop.keys(): #protein? error?
-            writer.append(st)
-            continue
+
+    #exclude self-comparison
+    for i in range(len(score)):
+        if ishit[i] > 0:
+            score[i] -= score_func(xyz[i], xyz[i],
+                                   score_type, plus, *score_params)
+        elif ishit[i] < 0 or (zeroneg == True and ishit[i] == 0):
+            score[i] -= score_func(xyz[i], xyz[i],
+                                   score_type, minus, *score_params)
+
+
+    saved = (np.argsort(score)[::-1])[:propose]  # reversed,cut
+    result = np.dstack((saved, title[saved],
+                        score[saved], ishit[saved]))[0]
+    return result
+
+def score_func(a, b, type, *params):
+
+    dist = lambda x, y: np.linalg.norm(x-y, 2)
+    try:
+        if type == 'normal':
+            multiplier, cutoff, dim = params
+            return multiplier / (max(dist(a,b), cutoff)**dim)
+
+        elif type == 'exp':
+            multiplier, cutoff, scale = params
+            return multiplier / (max(np.exp(dist(a,b)/scale), cutoff))
+
+        elif type == 'Gaussian':
+            multiplier, sigma = params
+            return (multiplier / ((2 * np.pi * sigma**2)**0.5)
+                * np.exp(-dist(a,b)**2/(2 * sigma**2)))
         else:
-            st.property['i_Clustering_Cluster#'] = labels[index]
-            st.property['i_Clustering_PCAScore'] = score[index]
-            writer.append(st)
-        index+=1
+            logger.error("Invalid score_type in score_func!")
+            quit()
 
-    reader.close()
-    writer.close()
-    print('Saved Cluster info to '+write_maegz)
+    except ValueError:
+        logger.error("Invalid Argument in Score func!")
+        quit()
+
+def set_score_params(x):
+    type = x['score_type']
+    if type == 'normal':
+        return x['cutoff'], x['score_dim']
+
+    elif type == 'exp':
+        return x['cutoff'], x['scale']
+
+    elif type == 'Gaussian':
+        return x['sigma']
+ 
+    else:
+        logger.error("Invalid score_type in set_score_params!")
+        quit()

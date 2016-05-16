@@ -2,20 +2,21 @@ from schrodinger import structure
 import numpy as np
 from os.path import splitext
 
+
 def read_interaction_file(inputfile, residues, hits, result):
     reader = structure.StructureReader(inputfile)
     for st in reader:
         prop = st.property
         inter=[]
 
-        if 'r_i_docking_score' not in prop.keys(): #protein? error?
+        if 'r_i_docking_score' not in prop.keys():  # protein? error?
             continue
 
         inter.append(prop['s_m_title'])
 
-        if hits != None and prop['s_m_title'] in hits['title']:
-            place = np.where(hits['title']==prop['s_m_title'])
-            i=int(place[0])            
+        if hits is not None and prop['s_m_title'] in hits['title']:
+            place = np.where(hits['title'] == prop['s_m_title'])
+            i = int(place[0])
             inter.append(hits[i][1])
         else:
             inter.append(0)
@@ -28,12 +29,13 @@ def read_interaction_file(inputfile, residues, hits, result):
     reader.close()
     return result
 
-def read_label(hitsfile,label):
+
+def read_label(hitsfile, label):
     reader = structure.StructureReader(hitsfile)
     for st in reader: 
         hits = []
         prop = st.property
-        if 'r_i_docking_score' in prop.keys(): #protein? error?
+        if 'r_i_docking_score' in prop.keys():  # protein? error?
             hits.append((prop['s_m_title'],label))
     
     dt = np.dtype([('title', np.str_, 16), ('ishit', np.int64, 1)])
@@ -43,12 +45,13 @@ def read_label(hitsfile,label):
 
     return hits
 
-def read_interaction(inputfiles,hitsfile):
+
+def read_interaction(inputfiles, hitsfile):
     reader = structure.StructureReader(inputfiles[0])
 
     st = reader.next()
     while 'r_i_docking_score' not in st.property.keys():
-        st = reader.next() #skip protein
+        st = reader.next()  # skip protein
 
     residues = []
     result = []
@@ -68,9 +71,9 @@ def read_interaction(inputfiles,hitsfile):
 
     if splitext(hitsfile)[1] in [".mae", ".maegz", ".gz"]:
         hits = read_label(hitsfile, 1)
-        #print(hits)
+        # print(hits)
     else:
-        #print(hitsfile)
+        # print(hitsfile)
         try:
             hits = np.loadtxt(hitsfile, delimiter=',', comments='#',
                               dtype={'names': ('title', 'ishit'), 
@@ -82,5 +85,5 @@ def read_interaction(inputfiles,hitsfile):
 
     for f in inputfiles:
         result = read_interaction_file(f, residues, hits, result)
-    #print(hits)
+    # print(hits)
     return result
