@@ -1,2 +1,0 @@
-python ~/scripts/glide_kmeans_v1.6/glide_kmeans_parameter.py -zeroneg True -show True -propose 100000 -score_correction True -hits OnlyHits_MTase.txt -title test -i MTase_fragment_Dock_best.maegz -cl 7 -m -1 -o dock.csv -p 10 -score True -skip 1
-python ~/scripts/glide_kmeans_v1.6/glide_kmeans_parameter_noPCA.py -zeroneg True -show True -propose 100000 -score_correction True -hits OnlyHits_MTase.txt -title test -i MTase_fragment_Dock_best.maegz -cl 7 -m -1 -o dock_noPCA.csv -p 10 -score True -skip 1

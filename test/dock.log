@@ -1,4 +1,0 @@
-options:
-{'cutoff': 1, 'zeroneg': False, 'show': False, 'propose': 100000, 'p_opt': False, 'o': 'test/dock.csv', 'file': 'test/settings.txt', 'threshold': 1.0, 'score_correction': False, 'hits': 'test/OnlyHits_MTase.txt', 'decoys': None, 'i': ['test/MTase_fragment_Dock_best.maegz'], 'title': 'testdata', 'm': -1.0, 'actives': None, '1': '', 'p': 1.0, 'score': True}
-
-*****Process Complete.*****

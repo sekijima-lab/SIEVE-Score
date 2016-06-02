@@ -1,4 +1,0 @@
-test
-AffProp_AUC, 0.883
-AffProp_EF10, 6.5
-AffProp_EF1, 42.5

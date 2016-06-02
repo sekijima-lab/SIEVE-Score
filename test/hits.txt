@@ -1,5 +1,0 @@
-#positive,1
-#negative,-1
-#unknown,0
-#default:0
-
