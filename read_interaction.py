@@ -1,7 +1,9 @@
 from schrodinger import structure
 import numpy as np
 from os.path import splitext
+import logging
 
+logger = logging.getLogger(__name__)
 
 def read_interaction_file(inputfile, residues, hits, result):
     reader = structure.StructureReader(inputfile)
@@ -16,7 +18,7 @@ def read_interaction_file(inputfile, residues, hits, result):
 
         if hits is not None and prop['s_m_title'] in hits['title']:
             place = np.where(hits['title'] == prop['s_m_title'])
-            i = int(place[0])
+            i = int(place[0][0])
             inter.append(hits[i][1])
         else:
             inter.append(0)
@@ -38,7 +40,7 @@ def read_label(hitsfile, label):
         if 'r_i_docking_score' in prop.keys():  # protein? error?
             hits.append((prop['s_m_title'],label))
     
-    dt = np.dtype([('title', np.str_, 16), ('ishit', np.int64, 1)])
+    dt = np.dtype([('title', np.str_, 64), ('ishit', np.int64, 1)])
     hits = np.array(hits, dtype=dt)
     if hits.shape == ():
         hits = np.array([hits])
@@ -51,7 +53,13 @@ def read_interaction(inputfiles, hitsfile):
 
     st = reader.next()
     while 'r_i_docking_score' not in st.property.keys():
-        st = reader.next()  # skip protein
+        try:
+            st = reader.next()  # skip protein
+        except StopIteration:
+            logger.exception("error in reading maegz file. "+
+                             "maybe it does not contain interaction data.",
+                             exc_info=True)
+            quit()
 
     residues = []
     result = []
@@ -77,7 +85,7 @@ def read_interaction(inputfiles, hitsfile):
         try:
             hits = np.loadtxt(hitsfile, delimiter=',', comments='#',
                               dtype={'names': ('title', 'ishit'), 
-                                     'formats': ('S16', '<i2')})
+                                     'formats': ('S64', '<i2')})
             if hits.shape == ():
                 hits = np.array([hits])
         except IOError:

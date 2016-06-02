@@ -1,86 +1,97 @@
 from os.path import splitext
 import logging
+import argparse
 
-def Input_func(options,settings):
-    for i,x in enumerate(settings):
-        if x.startswith("-"):
-            option_name = x[1:]
-            if option_name == "i":
-                options[option_name].append(settings[i+1].strip())
-            else:
-                options[option_name] = settings[i+1].strip()
+def Input_func():
 
-    return Check_options(options)
+    import sys
 
-def set_log_info(options):
-    if options.has_key("debug") and options["debug"]:
+    parser = argparse.ArgumentParser(prog="SIEVE-Score_v1.1",
+                                     description="Calculate SIEVE-Score",
+                                     fromfile_prefix_chars='@')
+
+    parser.add_argument("-i", "--input", action="append", required=True,
+                        help="input Glide files")
+    parser.add_argument("-o", "--output", nargs="?",
+                        default="SIEVE-Score.csv", help="output csv file")
+    parser.add_argument("-l", "--log", nargs="?", default="SIEVE-Score.log",
+                        help="log file")
+    parser.add_argument("--hits", help="hits file")
+
+    parser.add_argument("-t", "--title", default="",
+                        help="job name")
+    parser.add_argument("-n", "--num_cluster", type=int, default=10,
+                        help="number of clusters")
+    parser.add_argument("-d", "--debug", action="store_true", help="debug mode")
+    parser.add_argument("-a", "--annotate", action="store_true",
+                        help="annotate score/name onto result plot for debug")
+    parser.add_argument("-z", "--zeroneg", action="store_true",
+                        help="If set, compounds which are not in the hits file "
+                             +"are treated as negative, for evaluation set.")
+    parser.add_argument("-p", "--plus", type=float, default=1.0, 
+                        help="plus score of SIEVE-Score_1.0")
+    parser.add_argument("-m", "--minus", type=float, default=-1.0, 
+                        help="minus score of SIEVE-Score_1.0")
+    parser.add_argument("--opt_coef", nargs=2, default=False,
+                        help="optimize score coefficient.\n"+
+                             "require 2 arguments of file or int: actives, decoys")
+    parser.add_argument("--propose", type=int, default=100000,
+                        help="max number of output compounds")
+    parser.add_argument("--noclustering", dest="clustering",
+                        action="store_false",
+                        help="If set, no clustering is used.")
+    parser.add_argument("--score_type", default="normal",
+                        help="score function type of SIEVE-Score v1.1") 
+    parser.add_argument("--score_cutoff",dest="cutoff",type=float, default=1.0,
+                        help="cutoff_value")
+    parser.add_argument("--score_dim", dest="dim", type=float, default=1.0,
+                        help="change parameter of score function")
+    parser.add_argument("--score_scale", dest="scale", type=float, default=1.0,
+                        help="change parameter of score function")
+    parser.add_argument("--score_sigma", dest="sigma", type=float, default=1.0,
+                        help="change parameter of score fuction")
+
+    args = parser.parse_args(sys.argv[1:])
+    args = Check_options(args)
+    return args
+
+def set_log_info(args):
+    if args.debug:
         log_level = logging.DEBUG
     else:
         log_level = logging.INFO
 
     logging.basicConfig(format='%(asctime)s: %(levelname)s:%(message)s',
-                        level=log_level, filename=options["log"],filemode="w")
+                        level=log_level, filename=args.log,filemode="w")
 
     logger = logging.getLogger(__name__)
     return logger
 
 
-def Check_options(options):
-    tf = ['show', 'score', 'zeroneg', 'score_correction', 'p_opt', 'debug']
-    for x in tf:
-        if x in options.keys():
-            if options[x] in [False, 'False', 'false', 'No', 'no', '0']:
-                options[x] = False
-            else:
-                options[x] = True
+def Check_options(args):
+    
+    logger = set_log_info(args)
 
-    ints = ['cl', 'skip', 'propose']
-    for x in ints:
-        if x in options.keys():
-            options[x] = int(options[x])
+    if args.opt_coef is not False:
+        #opt_coef = [actives, decoys]
+        actives = num_molecule(args.opt_coef[0])
+        decoys  = num_molecule(args.opt_coef[1])
+        args.p = decoys/actives * float()
 
-    floats = ['p', 'm', 'threshold', 'opt_coef','cutoff','score_dim',
-              'scale', 'sigma']
-    for x in floats:
-        if x in options.keys():
-            options[x] = float(options[x])
+    return args
 
-    if options['log'] is None:
-        if options['o'] is None:
-            print("parameters are not set.")
-            quit()
-        else:
-            options['log'] = splitext(options['o'])[0]+'.log'
-
-    logger = set_log_info(options)
-
-    if options['i'] == []:
-        logger.error('No input assigned.')
-        quit()
-
-    if options['o'] is None:
-        logger.error('No output assigned.')
-        quit()
-
-    if 'title' not in options.keys():
-        options['title'] = options['i']
-
-    if options['p_opt']:
-        if (options["actives"] is None or
-            options["decoys"]  is None):
-            logger.error("error in p_optimize, actives/decoys is not set")
-            quit()
+def num_molecule(x):
+    if x.isdigit():
+        return int(x)
+    else:
         try:
             from schrodinger import structure
-            st = structure.StructureReader(options["actives"])
-            actives = sum(1.0 for _ in st)
-            st = structure.StructureReader(options["decoys"])
-            decoys  = sum(1.0 for _ in st)
-            options['p'] = decoys/actives * float(options['opt_coef'])
-
-        except:
-            logger.exception("error in p_optimize. please run in schrod env.",
+        except ImportError:
+            logger.exception("error in p_optimize. "+
+                             "if you want to count molecules of file, "+
+                             "please run in schrod env.",
                              exc_info=True)
             quit()
-
-    return options
+        
+        st = structure.StructureReader(x)
+        return sum(1 for _ in st)
