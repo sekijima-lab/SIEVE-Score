@@ -5,11 +5,12 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 def read_interaction_file(inputfile, residues, hits, result):
     reader = structure.StructureReader(inputfile)
     for st in reader:
         prop = st.property
-        inter=[]
+        inter = []
 
         if 'r_i_docking_score' not in prop.keys():  # protein? error?
             continue
@@ -24,22 +25,22 @@ def read_interaction_file(inputfile, residues, hits, result):
             inter.append(0)
 
         for x in residues:
-            inter.append(float(prop['r_glide_res:'+x+'_Eint']))
+            inter.append(float(prop['r_glide_res:' + x + '_Eint']))
 
         result.append(inter)
-            
+
     reader.close()
     return result
 
 
 def read_label(hitsfile, label):
     reader = structure.StructureReader(hitsfile)
-    for st in reader: 
+    for st in reader:
         hits = []
         prop = st.property
         if 'r_i_docking_score' in prop.keys():  # protein? error?
-            hits.append((prop['s_m_title'],label))
-    
+            hits.append((prop['s_m_title'], label))
+
     dt = np.dtype([('title', np.str_, 64), ('ishit', np.int64, 1)])
     hits = np.array(hits, dtype=dt)
     if hits.shape == ():
@@ -56,7 +57,7 @@ def read_interaction(inputfiles, hitsfile):
         try:
             st = reader.next()  # skip protein
         except StopIteration:
-            logger.exception("error in reading maegz file. "+
+            logger.exception("error in reading maegz file. " +
                              "maybe it does not contain interaction data.",
                              exc_info=True)
             quit()
@@ -68,7 +69,7 @@ def read_interaction(inputfiles, hitsfile):
     for x in st.property.keys():
         if x.startswith('r_glide_res:') and\
            x.endswith('_Eint'):
-            res = x.replace('r_glide_res:','').replace('_Eint','')
+            res = x.replace('r_glide_res:', '').replace('_Eint', '')
             residues.append(res)
 
     residues = sorted(residues)
@@ -84,7 +85,7 @@ def read_interaction(inputfiles, hitsfile):
         # print(hitsfile)
         try:
             hits = np.loadtxt(hitsfile, delimiter=',', comments='#',
-                              dtype={'names': ('title', 'ishit'), 
+                              dtype={'names': ('title', 'ishit'),
                                      'formats': ('S64', '<i2')})
             if hits.shape == ():
                 hits = np.array([hits])

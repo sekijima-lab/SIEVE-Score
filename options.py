@@ -2,6 +2,7 @@ from os.path import splitext
 import logging
 import argparse
 
+
 def Input_func():
 
     import sys
@@ -22,28 +23,31 @@ def Input_func():
                         help="job name")
     parser.add_argument("-n", "--num_cluster", type=int, default=10,
                         help="number of clusters")
-    parser.add_argument("-d", "--debug", action="store_true", help="debug mode")
+    parser.add_argument(
+        "-d", "--debug", action="store_true", help="debug mode")
     parser.add_argument("-a", "--annotate", action="store_true",
                         help="annotate score/name onto result plot for debug")
     parser.add_argument("-z", "--zeroneg", action="store_true",
-                        help="If set, compounds which are not in the hits file "
-                             +"are treated as negative, for evaluation set.")
-    parser.add_argument("-p", "--plus", type=float, default=1.0, 
+                        help="If set, compounds which are not in the hits " +
+                             "file are treated as negative, " +
+                             "for evaluation set.")
+    parser.add_argument("-p", "--plus", type=float, default=1.0,
                         help="plus score of SIEVE-Score_1.0")
-    parser.add_argument("-m", "--minus", type=float, default=-1.0, 
+    parser.add_argument("-m", "--minus", type=float, default=-1.0,
                         help="minus score of SIEVE-Score_1.0")
     parser.add_argument("--opt_coef", nargs=2, default=False,
-                        help="optimize score coefficient.\n"+
-                             "require 2 arguments of file or int: actives, decoys")
+                        help="optimize score coefficient.\n" +
+                             "require 2 arguments of file or int: " +
+                             "actives, decoys")
     parser.add_argument("--propose", type=int, default=100000,
                         help="max number of output compounds")
     parser.add_argument("--noclustering", dest="clustering",
                         action="store_false",
                         help="If set, no clustering is used.")
     parser.add_argument("--score_type", default="normal",
-                        help="score function type of SIEVE-Score v1.1") 
-    parser.add_argument("--score_cutoff",dest="cutoff",type=float, default=1.0,
-                        help="cutoff_value")
+                        help="score function type of SIEVE-Score v1.1")
+    parser.add_argument("--score_cutoff", dest="cutoff", type=float,
+                        default=1.0, help="cutoff_value")
     parser.add_argument("--score_dim", dest="dim", type=float, default=1.0,
                         help="change parameter of score function")
     parser.add_argument("--score_scale", dest="scale", type=float, default=1.0,
@@ -55,6 +59,7 @@ def Input_func():
     args = Check_options(args)
     return args
 
+
 def set_log_info(args):
     if args.debug:
         log_level = logging.DEBUG
@@ -62,23 +67,24 @@ def set_log_info(args):
         log_level = logging.INFO
 
     logging.basicConfig(format='%(asctime)s: %(levelname)s:%(message)s',
-                        level=log_level, filename=args.log,filemode="w")
+                        level=log_level, filename=args.log, filemode="w")
 
     logger = logging.getLogger(__name__)
     return logger
 
 
 def Check_options(args):
-    
+
     logger = set_log_info(args)
 
     if args.opt_coef is not False:
-        #opt_coef = [actives, decoys]
+        # opt_coef = [actives, decoys]
         actives = num_molecule(args.opt_coef[0])
-        decoys  = num_molecule(args.opt_coef[1])
-        args.p = decoys/actives * float()
+        decoys = num_molecule(args.opt_coef[1])
+        args.p = decoys / actives * float()
 
     return args
+
 
 def num_molecule(x):
     if x.isdigit():
@@ -87,11 +93,11 @@ def num_molecule(x):
         try:
             from schrodinger import structure
         except ImportError:
-            logger.exception("error in p_optimize. "+
-                             "if you want to count molecules of file, "+
+            logger.exception("error in p_optimize. " +
+                             "if you want to count molecules of file, " +
                              "please run in schrod env.",
                              exc_info=True)
             quit()
-        
+
         st = structure.StructureReader(x)
         return sum(1 for _ in st)

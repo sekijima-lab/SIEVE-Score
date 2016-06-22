@@ -3,67 +3,65 @@ import csv
 import matplotlib.pyplot as plt
 from os.path import splitext
 
-def plot_ROC(n_actives,n_decoys, title, fname, results,
+
+def plot_ROC(n_actives, n_decoys, title, fname, results,
              legend, show, glidefile):
-    colors = ['b','g','b','g','r','c','m','y','k']
+    colors = ['b', 'g', 'b', 'g', 'r', 'c', 'm', 'y', 'k']
 
-    results_file=results[0::3]
-    results_type=results[1::3]
-    results_name=results[2::3]
-    
-    ys=[]
-    scores=[]
-    data_types=[]
-    glide_y, glide_score, _ = GetYScoreFromResult(glidefile, 'dock', [],[])
+    results_file = results[0::3]
+    results_type = results[1::3]
+    results_name = results[2::3]
 
-    
+    ys = []
+    scores = []
+    data_types = []
+    glide_y, glide_score, _ = GetYScoreFromResult(glidefile, 'dock', [], [])
+
     for i in range(len(results_file)):
-        y,score,t = GetYScoreFromResult(results_file[i], results_type[i],
-                                      glide_y, glide_score)
+        y, score, t = GetYScoreFromResult(results_file[i], results_type[i],
+                                          glide_y, glide_score)
         ys.append(y)
         scores.append(score)
         data_types.append(t)
 
-    plt.figure(figsize=(8,8), dpi=150)
-    SetupROCCurvePlot(plt,title)
+    plt.figure(figsize=(8, 8), dpi=150)
+    SetupROCCurvePlot(plt, title)
 
     aucs = []
     ef10s = []
     ef1s = []
     for i in range(len(results_file)):
         auc, ef10, ef1 = AddROCCurve(plt, ys[i], scores[i], colors[i],
-                         results_name[i], n_actives, n_decoys, data_types[i])
+                                     results_name[i], n_actives, n_decoys, data_types[i])
         aucs.append(auc)
         ef10s.append(ef10)
         ef1s.append(ef1)
-
 
     SaveROCCurvePlot(plt, fname, show, legend, True)
     SaveAUCEF(fname, results, aucs, ef10s, ef1s)
 
 
-
 def SaveAUCEF(fname, results, aucs, ef10s, ef1s):
 
-    results_file=results[0::3]
-    results_type=results[1::3]
-    results_name=results[2::3]
-    
+    results_file = results[0::3]
+    results_type = results[1::3]
+    results_name = results[2::3]
+
     glide_auc = proposed_auc = 0
-    with open(splitext(fname)[0]+"_result.txt","w") as f_result:
-        f_result.write(str(title)+"\n")
+    with open(splitext(fname)[0] + "_result.txt", "w") as f_result:
+        f_result.write(str(title) + "\n")
         for i in range(len(results_file)):
-            f_result.write(results_name[i]+"_AUC, "+str(aucs[i])+"\n")
-            f_result.write(results_name[i]+"_EF10, "+str(ef10s[i])+"\n")
-            f_result.write(results_name[i]+"_EF1, "+str(ef1s[i])+"\n")
+            f_result.write(results_name[i] + "_AUC, " + str(aucs[i]) + "\n")
+            f_result.write(results_name[i] + "_EF10, " + str(ef10s[i]) + "\n")
+            f_result.write(results_name[i] + "_EF1, " + str(ef1s[i]) + "\n")
 
             if "Glide" in results_name[i]:
                 glide_auc = aucs[i]
-                
+
             elif "proposed" in results_name[i]:
                 proposed_auc = aucs[i]
 
-        if proposed_auc==0 or glide_auc==0:
+        if proposed_auc == 0 or glide_auc == 0:
             pass
         elif proposed_auc - glide_auc > 0.001:
             f_result.write("proposed, win\n")
@@ -71,35 +69,36 @@ def SaveAUCEF(fname, results, aucs, ef10s, ef1s):
             f_result.write("proposed, lose\n")
         else:
             f_result.write("proposed, draw\n")
-            
 
-def GetYScoreFromResult(filename,datatype,glide_y, glide_score):
-    y=[]
-    score=[]
+
+def GetYScoreFromResult(filename, datatype, glide_y, glide_score):
+    y = []
+    score = []
 
     try:
         data = csv.reader(open(filename, 'rb'), delimiter=',', quotechar='#')
     except IOError:
         print("postprocess was cancelled. auc is the same as glide SP.")
         return glide_y, glide_score, "dock"
-    
+
     if 'dock' in datatype:
-        #print(filename)
+        # print(filename)
         for line in data:
             if "ZINC" in line[0] or "TEMP" in line[0]:
                 y.append(0)
             else:
                 y.append(1)
-            
+
             score.append(float(line[1]))
-    
+
     else:
-    #datatype=='stat':
+        # datatype=='stat':
         for line in data:
             y.append(int(line[3]))
             score.append(float(line[2]))
 
     return y, score, datatype
+
 
 def GetRates(y, scores, n_actives, n_decoys):
 
@@ -109,7 +108,7 @@ def GetRates(y, scores, n_actives, n_decoys):
     foundactives = 0.0
     founddecoys = 0.0
     for idx, score in enumerate(scores):
-        if y[idx]==1:
+        if y[idx] == 1:
             foundactives += 1.0
         else:
             founddecoys += 1.0
@@ -118,30 +117,33 @@ def GetRates(y, scores, n_actives, n_decoys):
         fpr.append(founddecoys / float(n_decoys))
 
     tpr.append(1.0)
-    fpr.append(1.0) # add [1.0, 1.0]
+    fpr.append(1.0)  # add [1.0, 1.0]
 
     return tpr, fpr
-    
-def SetupROCCurvePlot(plt,title):
+
+
+def SetupROCCurvePlot(plt, title):
 
     plt.xlabel("False Positive rate", fontsize=14)
     plt.ylabel("True Positive rate", fontsize=14)
-    plt.title("ROC Curve ("+title+")", fontsize=14)
-    
+    plt.title("ROC Curve (" + title + ")", fontsize=14)
+
+
 def AddROCCurve(plt, actives, scores, color, label, n_actives, n_decoys, type):
     tpr, fpr = GetRates(actives, scores, n_actives, n_decoys)
-    #print(actives,label)
+    # print(actives,label)
     if "dock" in type:
-        scores = [-x for x in scores] #reverse order
-    #print(tpr)
+        scores = [-x for x in scores]  # reverse order
+    # print(tpr)
 
     auc_tmp = roc_auc_score(actives, scores)
-    auc_tmp = (auc_tmp*tpr[-1])#+((1-fpr[-1])*tpr[-1]) #adjust final position
-    auc = round(auc_tmp,3)
+    # +((1-fpr[-1])*tpr[-1]) #adjust final position
+    auc_tmp = (auc_tmp * tpr[-1])
+    auc = round(auc_tmp, 3)
 
-    ef_10 = tpr[len(tpr)//10]*10
-    ef_1  = tpr[len(tpr)//100]*100
-    label = label+", auc="+str(auc)
+    ef_10 = tpr[len(tpr) // 10] * 10
+    ef_1 = tpr[len(tpr) // 100] * 100
+    label = label + ", auc=" + str(auc)
 
     if "Glide" in label:
         plt.plot(fpr, tpr, linestyle='dashed', color=color,
@@ -149,6 +151,7 @@ def AddROCCurve(plt, actives, scores, color, label, n_actives, n_decoys, type):
     else:
         plt.plot(fpr, tpr, color=color, linewidth=2, label=label)
     return auc, ef_10, ef_1
+
 
 def SaveROCCurvePlot(plt, fname, show, legend, randomline=True):
 
@@ -166,15 +169,15 @@ def SaveROCCurvePlot(plt, fname, show, legend, randomline=True):
     plt.savefig(fname)
     if show:
         plt.show()
-    
+
 
 if __name__ == '__main__':
     import sys
     x = sys.argv
-    if len(x)<=5 and len(x)%3!=2:
+    if len(x) <= 5 and len(x) % 3 != 2:
         print("usage: n_actives, n_decoys, graph_title, graph_filename,"
-        "legend, show, glidefile, results(file, type, name)...")
-    
+              "legend, show, glidefile, results(file, type, name)...")
+
     n_actives = int(x[1])
     n_decoys = int(x[2])
     title = x[3]
@@ -194,6 +197,5 @@ if __name__ == '__main__':
     glidefile = x[7]
     results = x[8:]
 
-    plot_ROC(n_actives,n_decoys,title,fname,results,legend,show,glidefile)
-    
-
+    plot_ROC(n_actives, n_decoys, title, fname,
+             results, legend, show, glidefile)
