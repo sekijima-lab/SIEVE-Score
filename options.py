@@ -44,8 +44,12 @@ def Input_func():
     parser.add_argument("--noclustering", dest="clustering",
                         action="store_false",
                         help="If set, no clustering is used.")
-    parser.add_argument("--score_type", default="normal",
+    parser.add_argument("--score_type", default="normal", 
+                        choices=["normal", "exp", "Gauss"],
                         help="score function type of SIEVE-Score v1.1")
+    parser.add_argument("--dist", default="euclidian",
+                        choices=["euclidian", "mahalanobis"],
+                        help="distance metric of score function")
     parser.add_argument("--score_cutoff", dest="cutoff", type=float,
                         default=1.0, help="cutoff_value")
     parser.add_argument("--score_dim", dest="dim", type=float, default=1.0,

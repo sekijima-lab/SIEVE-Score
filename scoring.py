@@ -7,8 +7,13 @@ logger = logging.getLogger(__name__)
 def argwrapper(x):
     return x[0](*x[1:])
 
-def dist(a, b):
+def dist_euclidian(a, b):
     return np.linalg.norm(a-b, 2)
+
+def dist_mahalanobis(a, b):
+    import sklearn.neighbors.DistanceMetric
+    dist = DistanceMetric.get_metric('mahalanobis')
+    return 
 
 def scoring_cluster(n_clusters, cluster_number, data, labels, 
                     args, score_func):    
@@ -119,6 +124,8 @@ def scoring_main(data, labels, n_clusters, args):
     score = []
 
     from scoring_function import set_score_func
+
+    #CHANGE HERE
     score_func = set_score_func(args, dist)
     logger.info(str(score_func))
 
