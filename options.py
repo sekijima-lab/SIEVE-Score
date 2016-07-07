@@ -39,17 +39,17 @@ def Input_func():
                         help="optimize score coefficient.\n" +
                              "require 2 arguments of file or int: " +
                              "actives, decoys")
-    parser.add_argument("--propose", type=int, default=100000,
+    parser.add_argument("--propose", type=int, default=1000,
                         help="max number of output compounds")
     parser.add_argument("--noclustering", dest="clustering",
                         action="store_false",
-                        help="If set, no clustering is used.")
+                        help="If set, clustering will not used.")
     parser.add_argument("--score_type", default="normal", 
                         choices=["normal", "exp", "Gauss"],
-                        help="score function type of SIEVE-Score v1.1")
-    parser.add_argument("--dist", default="euclidian",
-                        choices=["euclidian", "mahalanobis"],
-                        help="distance metric of score function")
+                        help="score function type")
+    parser.add_argument("--dist", default="euclidean",
+                        choices=["euclidean", "mahalanobis"],
+                        help="distance metric of score function #not implemented")
     parser.add_argument("--score_cutoff", dest="cutoff", type=float,
                         default=1.0, help="cutoff_value")
     parser.add_argument("--score_dim", dest="dim", type=float, default=1.0,
@@ -57,7 +57,9 @@ def Input_func():
     parser.add_argument("--score_scale", dest="scale", type=float, default=1.0,
                         help="change parameter of score function")
     parser.add_argument("--score_sigma", dest="sigma", type=float, default=1.0,
-                        help="change parameter of score fuction")
+                        help="change parameter of score function")
+    parser.add_argument("--nprocs", type=int, default=1,
+                        help="number of cpus to use, default=1")
 
     args = parser.parse_args(sys.argv[1:])
     args = Check_options(args)

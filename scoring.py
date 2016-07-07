@@ -7,18 +7,13 @@ logger = logging.getLogger(__name__)
 def argwrapper(x):
     return x[0](*x[1:])
 
-def dist_euclidian(a, b):
-    return np.linalg.norm(a-b, 2)
-
-def dist_mahalanobis(a, b):
-    import sklearn.neighbors.DistanceMetric
-    dist = DistanceMetric.get_metric('mahalanobis')
-    return 
-
-def scoring_cluster(n_clusters, cluster_number, data, labels, 
-                    args, score_func):    
+def scoring_cluster(n_clusters, cluster_number, data, labels, args):
     class_members = labels == cluster_number
     data_in_cluster = data[class_members]
+
+    from scoring_function import set_score_func
+    #score_func = set_score_func(args, dist=YOUR_DISTANCE_FUNCTION)
+    score_func = set_score_func(args)
 
     result = scoring(cluster_number, data_in_cluster, args, score_func)
     logger.info('Calc SIEVE-Score for cluster %d of %d.'
@@ -84,35 +79,10 @@ def scoring(cluster_number, data, args, score_func):
             score[i] -= score_func.calculate(multiplier,
                                              xyz[i], known_xyz[j])
 
-    saved = (np.argsort(score)[::-1])[:propose]  # reversed,cut
+    saved = np.argsort(score)[::-1]  # reversed,cut
     result = np.dstack((saved, title[saved],
                         score[saved], ishit[saved]))[0]
     return result
-
-
-def save_to_maegz(inputfile, labels, score):
-    import schrodinger.structure as structure
-
-    reader = structure.StructureReader(inputfile)
-    write_maegz = inputfile.rstrip(".maegz") + "_result.maegz"
-    writer = structure.StructureWriter(write_maegz)
-
-    index = 0
-    for st in reader:
-        prop = st.property
-
-        if 'r_i_docking_score' not in prop.keys():  # protein? error?
-            writer.append(st)
-            continue
-        else:
-            st.property['i_Clustering_Cluster#'] = labels[index]
-            st.property['i_Clustering_PCAScore'] = score[index]
-            writer.append(st)
-        index += 1
-
-    reader.close()
-    writer.close()
-    print('Saved Cluster info to ' + write_maegz)
 
 
 def scoring_main(data, labels, n_clusters, args):
@@ -123,18 +93,12 @@ def scoring_main(data, labels, n_clusters, args):
 
     score = []
 
-    from scoring_function import set_score_func
-
-    #CHANGE HERE
-    score_func = set_score_func(args, dist)
-    logger.info(str(score_func))
-
     if clustering is True:
-        pool = Pool(processes=4)
+        pool = Pool(processes=args.nprocs)
 
         score_nest = pool.map(argwrapper,
                               [(scoring_cluster, n_clusters, i,
-                                data, labels, args, score_func)
+                                data, labels, args)
                                for i in range(n_clusters)])
 
         score = [_ for inner in score_nest for _ in inner]
@@ -148,9 +112,33 @@ def scoring_main(data, labels, n_clusters, args):
         logger.debug(x)
         score = score + list(x)
 
-    score = sorted(score, key=lambda x: float(x[2]))[::-1][:args.propose]
+
+    #score: [[id, title, score, label], ...]
+    score = sort_delete_duplicate(score)
+    score = score[:args.propose]
 
     np.savetxt(outputfile, score, fmt="%s", delimiter=",")
     logger.info('Saved SIEVE-Score.')
 
     return score
+
+
+def sort_delete_duplicate(score):
+    # sort by title, score
+    score = sorted(score, key=lambda x: float(x[2]), reverse=True)
+    score = sorted(score, key=lambda x: x[1], reverse=True)
+
+    ret = []
+    for d in score:
+        cpdname = d[1]
+        if len(ret)>0:
+            lastcpdname = ret[-1][1]
+        else:
+            lastcpdname = None
+
+        if cpdname != lastcpdname:
+            ret.append(d)
+
+    # re-sort by score
+    ret = sorted(ret, key=lambda x: float(x[2]), reverse=True)
+    return ret

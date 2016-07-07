@@ -42,7 +42,8 @@ class ScoreGauss():
         return  (self.constant * multiplier *
                  np.exp(-self.dist(a, b)**2 / (2 * self.sigma**2)))
 
-def set_score_func(args, dist):
+dist_default = lambda x,y: np.linalg.norm(x-y)
+def set_score_func(args, dist=dist_default):
         
     type = args.score_type
     if type == 'normal':
