@@ -7,25 +7,21 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 
-def plotting(args, data, km, score):
+def plotting(args, data, cpdname, score, label):
 
     interactions = np.array(data[:, 2:], dtype='float')
     cpdname = data[:, 0]
-    ishit = data[:, 1].astype('int')
-    labels = km.labels_
 
     pca = PCA(n_components=2)
     X = pca.fit(interactions).transform(interactions)
-    n_clusters = len(km.cluster_centers_)
 
-    from itertools import cycle
-    colors = cycle('bgrcmykbgrcmykbgrcmykbgrcmyk')
-    for k, col in zip(range(n_clusters), colors):
+    #from itertools import cycle
+    #colors = cycle('bgrcmykbgrcmykbgrcmykbgrcmyk')
 
-        class_members = (labels == k) * (ishit > 0)
-        plt.plot(X[class_members, 0], X[class_members, 1], col + 'o')
-        class_members = (labels == k) * (ishit <= 0)
-        plt.plot(X[class_members, 0], X[class_members, 1], col + 'x')
+    class_members = (label > 0)
+    plt.plot(X[class_members, 0], X[class_members, 1], 'b' + 'o')
+    class_members = (label <= 0)
+    plt.plot(X[class_members, 0], X[class_members, 1], 'g' + 'x')
 
     plt.xlabel("PC1")
     plt.ylabel("PC2")
@@ -46,8 +42,7 @@ def plotting(args, data, km, score):
 
     plt.axes().set_aspect("equal", "datalim")
 
-    plt.title('%s\nEstimated number of clusters: %d'
-              % (args.title, n_clusters))
+    plt.title(args.title)
 
     from os.path import splitext
     figname = splitext(args.output)[0] + '.png'

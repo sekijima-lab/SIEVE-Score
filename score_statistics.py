@@ -7,10 +7,12 @@ import matplotlib.pyplot as plt
 
 
 def plot_ROC(n_actives, n_decoys, title, fname, results,
-             legend, show, glidefile):
+             legend, show):
 
     plt.figure(figsize=(6, 6), dpi=150)
-    SetupROCCurvePlot(plt, title)
+    plt.xlabel("False Positive rate", fontsize=14)
+    plt.ylabel("True Positive rate", fontsize=14)
+    plt.title("ROC Curve (" + title + ")", fontsize=14)
 
     results_file = results[0::3]
     results_type = results[1::3]
@@ -136,13 +138,6 @@ def GetRates(y, scores, n_actives, n_decoys):
     return tpr, fpr
 
 
-def SetupROCCurvePlot(plt, title):
-
-    plt.xlabel("False Positive rate", fontsize=14)
-    plt.ylabel("True Positive rate", fontsize=14)
-    plt.title("ROC Curve (" + title + ")", fontsize=14)
-
-
 def AddROCCurve(plt, actives, scores, i, label, n_actives, n_decoys, type):
 
     tpr, fpr = GetRates(actives, scores, n_actives, n_decoys)
@@ -201,15 +196,31 @@ def SaveROCCurvePlot(plt, fname, show, legend, randomline=True):
         plt.show()
 
 
+def num_molecule(x):
+    if x.isdigit():
+        return int(x)
+    else:
+        try:
+            from schrodinger import structure
+        except ImportError:
+            logger.exception("error in counting molecule. " +
+                             "if you want to count molecules of file, " +
+                             "please execute by $SCHRODINGER/run python.",
+                             exc_info=True)
+            quit()
+
+        st = structure.StructureReader(x)
+        return sum(1 for _ in st)
+
+
 if __name__ == '__main__':
     import sys
     x = sys.argv
     if len(x) <= 5 and len(x) % 3 != 2:
         print("usage: n_actives, n_decoys, graph_title, graph_filename,"
-              "legend, show, glidefile, results(file, type, name)...")
-
-    n_actives = int(x[1])
-    n_decoys = int(x[2])
+              "legend, show, results(file, type, name)...")
+    n_actives = num_molecule(x[1])
+    n_decoys = num_molecule(x[2])
     title = x[3]
     fname = x[4]
     legend = x[5]
@@ -224,8 +235,8 @@ if __name__ == '__main__':
     else:
         show = True
 
-    glidefile = x[7]
-    results = x[8:]
+    results = x[7:]
 
     plot_ROC(n_actives, n_decoys, title, fname,
-             results, legend, show, glidefile)
+             results, legend, show)
+

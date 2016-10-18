@@ -39,7 +39,7 @@ def Input_func():
                         help="optimize score coefficient.\n" +
                              "require 2 arguments of file or int: " +
                              "actives, decoys")
-    parser.add_argument("--propose", type=int, default=1000,
+    parser.add_argument("--propose", type=int, default=100000,
                         help="max number of output compounds")
     parser.add_argument("--noclustering", dest="clustering",
                         action="store_false",

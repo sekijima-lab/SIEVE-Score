@@ -1,126 +1,84 @@
 import numpy as np
 import logging
-from multiprocessing import Pool
-
 logger = logging.getLogger(__name__)
 
-def argwrapper(x):
-    return x[0](*x[1:])
 
-def scoring_cluster(n_clusters, cluster_number, data, labels, args):
-    class_members = labels == cluster_number
-    data_in_cluster = data[class_members]
-
-    from scoring_function import set_score_func
-    #score_func = set_score_func(args, dist=YOUR_DISTANCE_FUNCTION)
-    score_func = set_score_func(args)
-
-    result = scoring(cluster_number, data_in_cluster, args, score_func)
-    logger.info('Calc SIEVE-Score for cluster %d of %d.'
-                % (cluster_number + 1, n_clusters))
-    logger.debug(result)
-
-    return result
-
-
-def scoring(cluster_number, data, args, score_func):
-
-    plus = args.plus
-    minus = args.minus
-    propose = args.propose
-    zeroneg = args.zeroneg
+def training(data, args):
 
     title = data[:, 0]
-    ishit = data[:, 1].astype('int')
-    xyz = data[:, 3:].astype('float')
+    labels = data[:, 1].astype('int')
+    features = data[:, 3:].astype('float')
 
-    hits = np.array([True if x > 0 else False for x in ishit])
-    if zeroneg is False:
-        nonhits = np.array([True if x < 0 else False for x in ishit])
-    elif zeroneg is True:
-        nonhits = np.array([True if x <= 0 else False for x in ishit])
-    # <= for DUD-E testset, < for others
-
-    hits_xyz = data[hits, 3:].astype('float')
-    numhits = ishit[hits].shape[0]
-    numnonhits = ishit[nonhits].shape[0]
-    nonhits_xyz = data[nonhits, 3:].astype('float')
-    known_xyz = np.r_[hits_xyz, nonhits_xyz]
-
-    # calculate score
-    score = np.zeros(data.shape[0])
-
-    if numhits + numnonhits > 0:
-        for i in range(data.shape[0]):
-            for j in range(len(known_xyz)):
-                if j < numhits:
-                    multiplier = plus
-                else:
-                    multiplier = minus
-
-                score[i] += score_func.calculate(multiplier,
-                                                 xyz[i], known_xyz[j])
-
-        if ishit.shape[0] == 1:
-            # single-hit cluster
-            logger.warning('cluster %d: is single-hit cluster.'
-                           % cluster_number)
-
-    else:
-        # contains only unknown data
-        logger.warning('cluster %d: No known data.' % cluster_number)
-
-    # exclude self-comparison
-    for i in range(len(score)):
-        if ishit[i] > 0:
-            score[i] -= score_func.calculate(multiplier,
-                                             xyz[i], known_xyz[j])
-        elif ishit[i] < 0 or (zeroneg is True and ishit[i] == 0):
-            score[i] -= score_func.calculate(multiplier,
-                                             xyz[i], known_xyz[j])
-
-    saved = np.argsort(score)[::-1]  # reversed,cut
-    result = np.dstack((saved, title[saved],
-                        score[saved], ishit[saved]))[0]
-    return result
+    #parameter search (SVM)
+    from sklearn import grid_search   
+    clf.fit(features, labels)
+    
+    return clf
 
 
-def scoring_main(data, labels, n_clusters, args):
+def cv_accuracy(clf, features, labels):
+    from sklearn import cross_validation
+    scores = cross_validation.cross_val_score(clf, features, labels, cv=5)
+    print("Accuracy: %0.2f (+/- %0.2f)" %(scores.mean(), scores.std()*2))
 
-    clustering = args.clustering
+    
+def scoring(test_data, args, clf):
+    features = test_data[:, 3:].astype('float')
+    return clf.predict(features)
+
+
+def scoring_eval(data, args):
+
     outputfile = args.output
     score_type = args.score_type
 
-    score = []
+    title = data[:, 0]
+    label_data = data[:, 1].astype('int')
+    labels = np.array([1 if x>0 else 0 for x in label_data])    
+    features = data[:, 3:].astype('float')
 
-    if clustering is True:
-        pool = Pool(processes=args.nprocs)
-
-        score_nest = pool.map(argwrapper,
-                              [(scoring_cluster, n_clusters, i,
-                                data, labels, args)
-                               for i in range(n_clusters)])
-
-        score = [_ for inner in score_nest for _ in inner]
-        # flatten list
-
-    else:
-        # clustering is False
-        x = scoring(0, data, args, score_func)
-        logger.info('Calc SIEVE-Score for cluster %d of %d.'
-                    % (1, n_clusters))
-        logger.debug(x)
-        score = score + list(x)
+    if labels.size < 5:
+        logger.warning('Need more data to train.')
+    elif labels[labels>0].size == 0:
+        logger.warning('Training data have only non-hits.')
+    elif (args.zeroneg and labels[labels<=0].size == 0 or
+          not args.zeroneg and labels[labels<0].size == 0):
+        logger.warning('Training data have only hits.')
 
 
-    #score: [[id, title, score, label], ...]
-    score = sort_delete_duplicate(score)
-    score = score[:args.propose]
+    #SVM, Grid search by CV
+    from sklearn import svm, grid_search
+    from sklearn.cross_validation import StratifiedKFold
 
-    np.savetxt(outputfile, score, fmt="%s", delimiter=",")
+    svc = svm.SVC(kernel="rbf", degree=3, probability=True, cache_size=200)
+    print(labels)
+    skf = StratifiedKFold(labels, 5)
+    param_grid = [{'kernel': ['rbf'],
+                    'gamma': [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1, 10, 100, 1000],
+                    'C': [1e-2, 1e-1, 1, 10, 100]},
+                   {'kernel': ['linear'], 'C': [1e-2, 1e-1, 1, 10, 100, 1000]
+                   }]
+    clf = grid_search.GridSearchCV(svc, param_grid, cv=skf,
+                                   scoring=None, n_jobs=-1)
+    print(labels)
+    clf.fit(features, labels)
+    result = clf.grid_scores_
+    print(clf.best_params_, clf.best_score_)
+    
+    score = clf.predict_proba(features)
+
+    rank = np.argsort(score)[:args.propose]
+    cpdname = title[rank]
+    score = score[rank]
+    label = labels[rank]
+
+    result = np.dstack(cpdname, score, label)
+
+    #test
+    np.savetxt(outputfile, result, fmt="%s", delimiter=",")
     logger.info('Saved SIEVE-Score.')
 
-    return score
+    return cpdname, score, label
 
 
 def sort_delete_duplicate(score):

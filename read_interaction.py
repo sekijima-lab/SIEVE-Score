@@ -25,7 +25,11 @@ def read_interaction_file(inputfile, residues, hits, result):
             inter.append(0)
 
         for x in residues:
-            inter.append(float(prop['r_glide_res:' + x + '_Eint']))
+            if x == "docking_score":
+                inter.append(float(prop["r_i_docking_score"]))
+            else:
+                inter.append(float(prop['r_glide_res:' + x + '_Eint']))
+
 
         result.append(inter)
 
@@ -71,8 +75,9 @@ def read_interaction(inputfiles, hitsfile):
            x.endswith('_Eint'):
             res = x.replace('r_glide_res:', '').replace('_Eint', '')
             residues.append(res)
+        residues.append("docking_score")
 
-    residues = sorted(residues)
+    #residues = sorted(residues)
     [legend.append(i) for i in residues]
     result.append(legend)
 

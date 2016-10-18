@@ -13,22 +13,15 @@ def SIEVE(args):
     data = inter_array[1:, :]
     interactions = np.array(data[:, 2:], dtype='float')
 
-    n_clusters = args.num_cluster
-    km = KMeans(n_clusters=n_clusters,
-                max_iter=1000, n_jobs=-1).fit(interactions)
-    labels = km.labels_
-
     logger.info('Read interaction data.')
     logger.debug('interaction_array:\n' + str(inter_array))
-    logger.info('num_clusters: ' + str(n_clusters))
 
-    # setting score parameters
-
-    from scoring import scoring_main
-    score = scoring_main(data, labels, n_clusters, args)
+    # setting score parameters, eval
+    from scoring import scoring_eval
+    cpdname, score, label = scoring_eval(data, args)
 
     from plotting import plotting
-    plotting(args, data, km, score)
+    plotting(args, data, cpdname, score, label)
     print('\n*****Process Complete.*****\n')
     logger.info('\n*****Process Complete.*****\n')
 
