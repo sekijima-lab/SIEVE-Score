@@ -75,7 +75,7 @@ def read_interaction(inputfiles, hitsfile):
            x.endswith('_Eint'):
             res = x.replace('r_glide_res:', '').replace('_Eint', '')
             residues.append(res)
-        residues.append("docking_score")
+    residues.append("docking_score")
 
     #residues = sorted(residues)
     [legend.append(i) for i in residues]

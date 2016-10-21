@@ -55,27 +55,30 @@ def scoring_eval(data, args):
     skf = StratifiedKFold(labels, 5)
     param_grid = [{'kernel': ['rbf'],
                     'gamma': [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1, 10, 100, 1000],
-                    'C': [1e-2, 1e-1, 1, 10, 100]},
-                   {'kernel': ['linear'], 'C': [1e-2, 1e-1, 1, 10, 100, 1000]
+                    'C': [1e-2, 1e-1, 1, 10, 100]
                    }]
     clf = grid_search.GridSearchCV(svc, param_grid, cv=skf,
                                    scoring=None, n_jobs=-1)
-    print(labels)
     clf.fit(features, labels)
-    result = clf.grid_scores_
-    print(clf.best_params_, clf.best_score_)
-    
-    score = clf.predict_proba(features)
 
-    rank = np.argsort(score)[:args.propose]
+    grid_scores = clf.grid_scores_
+    
+    np.savetxt(outputfile, grid_scores, fmt="%s", delimiter=",")
+    
+    print(clf.best_params_, clf.best_score_)
+    score = clf.predict_proba(features)[:,1]
+
+    rank = np.argsort(score)[::-1][:args.propose]
     cpdname = title[rank]
     score = score[rank]
     label = labels[rank]
 
-    result = np.dstack(cpdname, score, label)
+    result = np.array(zip(cpdname, score, label))
+    #print(result)
+    result = np.dstack((cpdname, score, label))
 
     #test
-    np.savetxt(outputfile, result, fmt="%s", delimiter=",")
+    #np.savetxt(outputfile, result, fmt="%s", delimiter=",")
     logger.info('Saved SIEVE-Score.')
 
     return cpdname, score, label
