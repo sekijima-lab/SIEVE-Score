@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import logging
 logger = logging.getLogger(__name__)
 
@@ -53,17 +54,22 @@ def scoring_eval(data, args):
     svc = svm.SVC(kernel="rbf", degree=3, probability=True, cache_size=200)
     print(labels)
     skf = StratifiedKFold(labels, 5)
-    param_grid = [{'kernel': ['rbf'],
-                    'gamma': [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1, 10, 100, 1000],
-                    'C': [1e-2, 1e-1, 1, 10, 100]
-                   }]
+    param_grid = [{'C':np.logspace(-3, 3, 7),
+                  'gamma':np.logspace(-3, 3, 7)}]
     clf = grid_search.GridSearchCV(svc, param_grid, cv=skf,
                                    scoring=None, n_jobs=-1)
     clf.fit(features, labels)
 
-    grid_scores = clf.grid_scores_
-    
-    np.savetxt(outputfile, grid_scores, fmt="%s", delimiter=",")
+    grid_scores = [["C", "gamma", "mean_score_CV", "std_CV"]]
+    for params, mean_score, all_scores in clf.grid_scores_:
+        grid_scores.append([params['C'], params['gamma'],
+                            mean_score, all_scores.std()])
+    grid_scores_df = pd.DataFrame(grid_scores[1:],
+                                  columns=["C", "gamma", "mean_score_CV", "std_CV"])
+    grid_scores = pd.pivot_table(grid_scores_df, values="mean_score_CV",
+                                 index="C",columns="gamma",aggfunc=np.max)
+    print(grid_scores)
+    np.savetxt(outputfile, grid_scores, fmt="%.3f", delimiter=",")
     
     print(clf.best_params_, clf.best_score_)
     score = clf.predict_proba(features)[:,1]
