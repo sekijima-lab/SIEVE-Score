@@ -28,8 +28,10 @@ def read_interaction_file(inputfile, residues, hits, result):
             if x == "docking_score":
                 inter.append(float(prop["r_i_docking_score"]))
             else:
-                inter.append(float(prop['r_glide_res:' + x + '_Eint']))
-
+                vdW = float(prop['r_glide_res:' + x + '_vdW'])
+                coul = float(prop['r_glide_res:' + x + '_coul'])
+                hbond = float(prop['r_glide_res:' + x + '_hbond'])
+                inter = inter + [vdW, coul, hbond]
 
         result.append(inter)
 
@@ -78,7 +80,10 @@ def read_interaction(inputfiles, hitsfile):
     residues.append("docking_score")
 
     #residues = sorted(residues)
-    [legend.append(i) for i in residues]
+    for res in residues:
+        res_str = str(res)
+        legend = legend + [res_str+"_vdW", res_str+"coul", res_str+"hbond"]
+
     result.append(legend)
 
     reader.close()
