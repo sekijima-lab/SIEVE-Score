@@ -1,13 +1,14 @@
 import logging
 import numpy as np
 
-def SIEVE(args):
+
+def sieve(args):
     logger = logging.getLogger(__name__)
 
-    #read interaction
+    # read interaction
     import os.path
-    input_interaction = os.path.splitext(args.input[0])[0]+".interaction"
-    if len(args.input)==1 and os.path.exists(input_interaction):
+    input_interaction = os.path.splitext(args.input[0])[0] + ".interaction"
+    if len(args.input) == 1 and os.path.exists(input_interaction):
         inter_array = np.genfromtxt(input_interaction,
                                     delimiter=",", dtype=None)
         inter_array = inter_array.tolist()
@@ -21,7 +22,7 @@ def SIEVE(args):
             quit()
 
     # Split data
-    header = inter_array[0, :]
+    # header = inter_array[0, :]
     data = inter_array[1:, :]
 
     cpdname = data[:, 0]
@@ -33,21 +34,25 @@ def SIEVE(args):
 
     # Calc SIEVE-Score
     from scoring import scoring_eval, scoring_param_search, scoring_compareSVMRF
-    #cpdname, score, label = scoring_param_search(cpdname, label, interactions, args)
-    cpdname, score, label = scoring_eval(cpdname, label, interactions, args)
-    #cpdname, score, label = scoring_compareSVMRF(cpdname, label, interactions, args)
-    from plotting import plotting
-    plotting(args, data, cpdname, score, label)
+    # scoring_param_search(cpdname, label, interactions, args)
+    scoring_eval(cpdname, label, interactions, args)
+    # scoring_compareSVMRF(cpdname, label, interactions, args)
+
+    # plot on PCA space
+    # from plotting import plotting
+    # plotting(args, data, cpdname, score, label)
+
     print('\n*****Process Complete.*****\n')
     logger.info('\n*****Process Complete.*****\n')
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
     # options.py
     from options import Input_func as Input
+
     args = Input()
 
     logger = logging.getLogger(__name__)
     logger.info("options:\n" + str(args))
 
-    SIEVE(args)
+    sieve(args)

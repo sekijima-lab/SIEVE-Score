@@ -8,12 +8,7 @@ small.log
 actives.txt
 -t
 test-small
---opt_coef
-5
-10
 -z
 -d
---score_dim
-1.0
 -t
 SIEVE-Score: CXCR4-small
