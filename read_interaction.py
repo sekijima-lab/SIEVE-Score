@@ -28,7 +28,7 @@ def read_interaction_file(inputfile, residues, hits, result):
             if x == "docking_score":
                 inter.append(float(prop["r_i_docking_score"]))
             else:
-                vdW = float(prop['r_glide_res:' + x + '_vdW'])
+                vdW = float(prop['r_glide_res:' + x + '_vdw'])
                 coul = float(prop['r_glide_res:' + x + '_coul'])
                 hbond = float(prop['r_glide_res:' + x + '_hbond'])
                 inter = inter + [vdW, coul, hbond]
@@ -78,11 +78,14 @@ def read_interaction(inputfiles, hitsfile):
             res = x.replace('r_glide_res:', '').replace('_Eint', '')
             residues.append(res)
     residues.append("docking_score")
+    residues = sorted(residues)
 
-    #residues = sorted(residues)
     for res in residues:
-        res_str = str(res)
-        legend = legend + [res_str+"_vdW", res_str+"coul", res_str+"hbond"]
+        if res != "docking_score":
+            res_str = str(res)
+            legend = legend + [res_str+"_vdw", res_str+"_coul", res_str+"_hbond"]
+        else:
+            legend.append("docking_score")
 
     result.append(legend)
 
@@ -105,4 +108,8 @@ def read_interaction(inputfiles, hitsfile):
     for f in inputfiles:
         result = read_interaction_file(f, residues, hits, result)
     # print(hits)
+
+    int_file = splitext(inputfiles[-1])[0]+".interaction"
+    np.savetxt(int_file, result, delimiter=",", fmt="%s")
+
     return result
