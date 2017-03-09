@@ -22,7 +22,7 @@ def sieve(args):
             quit()
 
     # Split data
-    # header = inter_array[0, :]
+    interaction_name = inter_array[0, 2:]
     data = inter_array[1:, :]
 
     cpdname = data[:, 0]
@@ -34,11 +34,11 @@ def sieve(args):
 
     # Calc SIEVE-Score
     from scoring import scoring_eval, scoring_param_search, scoring_compareSVMRF
-    # scoring_param_search(cpdname, label, interactions, args)
-    scoring_eval(cpdname, label, interactions, args)
-    # scoring_compareSVMRF(cpdname, label, interactions, args)
+    # scoring_param_search(cpdname, label, interaction_name, interactions, args)
+    scoring_eval(cpdname, label, interaction_name, interactions, args)
+    # scoring_compareSVMRF(cpdname, label, interaction_name, interactions, args)
 
-    # plot on PCA space
+    # plot on PCA space, disabled
     # from plotting import plotting
     # plotting(args, data, cpdname, score, label)
 

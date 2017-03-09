@@ -82,7 +82,7 @@ def cv_accuracy_plot(classifier, features, labels, cpd_names, model_names, args)
             vf = np.vectorize(f)
             scores = vf(scores)
 
-        print(scores)
+        # print(scores)
         # sort by second column, reverse order
         scores = scores[scores[:, 1].argsort()][::-1]
 
@@ -121,14 +121,14 @@ def cv_accuracy_plot(classifier, features, labels, cpd_names, model_names, args)
     plt.clf()
 
     # feature importance for RF
-    if any([("RF" in name) for name in model_names]):
+    if args.model == "RF":
         outfile = splitext(args.output)[0] + ".importance"
         np.savetxt(outfile, mean_importances, delimiter=",")
 
     return aucs
 
 
-def scoring_param_search(title, label_data, features, args):
+def scoring_param_search(title, label_data, interaction_name, features, args):
     if args.zeroneg:
         y = np.array([1 if x > 0 else 0 for x in label_data])
     else:
@@ -191,7 +191,7 @@ def scoring_param_search(title, label_data, features, args):
     return cpd_name, score, label
 
 
-def scoring_eval(cpd_names, label_data, features, args):
+def scoring_eval(cpd_names, label_data, interaction_name, features, args):
 
     if args.zeroneg:
         labels = np.array([1 if x > 0 else 0 for x in label_data])
@@ -212,6 +212,12 @@ def scoring_eval(cpd_names, label_data, features, args):
         model_names = ['SIEVE-Score SVM']
 
     mean_auc = cv_accuracy_plot(classifier, features, labels, cpd_names, model_names, args)
+
+    if args.model == "RF":
+        importance_file = splitext(args.output)[0] + ".importance"
+        importance = np.genfromtxt(importance_file)
+        importance = np.vstack([interaction_name, importance]).T # concatenate interaction name and interaction
+        np.savetxt(importance_file, importance, fmt="%s,%f")
 
     """
     # prediction
@@ -234,7 +240,7 @@ def scoring_eval(cpd_names, label_data, features, args):
     return
 
 
-def scoring_compareSVMRF(title, label_data, features, args):
+def scoring_compareSVMRF(title, label_data, interaction_name, features, args):
     outfile = args.output
 
     if args.zeroneg:
