@@ -38,7 +38,8 @@ def cv_accuracy_plot(classifier, features, labels, cpd_names, model_names, args)
         scores = np.array([])
 
         for i, (train, test) in enumerate(cvs):
-            probas_ = clf.fit(X[train], y[train]).predict_proba(X[test])
+            clf = clf.fit(X[train], y[train])
+            probas_ = clf.predict_proba(X[test])
             cpd_names_ = cpd_names[test]
 
             # record scores, having bug for some target?
@@ -75,12 +76,6 @@ def cv_accuracy_plot(classifier, features, labels, cpd_names, model_names, args)
                  label='Mean (AUC = %0.2f)' % mean_auc, lw=1)
 
         # save score for each model
-        # if using python3, needs to convert binary to str
-        import sys
-        if sys.version_info[0] >= 3:
-            f = lambda x: x.decode('utf-8')
-            vf = np.vectorize(f)
-            scores = vf(scores)
 
         # print(scores)
         # sort by second column, reverse order
@@ -91,7 +86,7 @@ def cv_accuracy_plot(classifier, features, labels, cpd_names, model_names, args)
 
         # feature importance for RF
         if "RF" in name:
-            mean_importances /= len(cvs)
+            mean_importances /= float(len(cvs))
 
     # glide score, reverse order
     fpr, tpr, thresholds = roc_curve(y, docking_score * (-1))
@@ -215,10 +210,12 @@ def scoring_eval(cpd_names, label_data, interaction_name, features, args):
 
     if args.model == "RF":
         importance_file = splitext(args.output)[0] + ".importance"
-        importance = np.genfromtxt(importance_file)
-        importance = np.vstack([interaction_name, importance]).T # concatenate interaction name and interaction
-        np.savetxt(importance_file, importance, fmt="%s,%f")
-
+        importance = pd.read_csv(importance_file, header=None, dtype="float64")
+        if not args.use_docking_score:
+            interaction_name = interaction_name[:-1]
+        interaction_name = pd.DataFrame(interaction_name)
+        importance = pd.concat([interaction_name, importance],axis=1, join_axes=[importance.index])
+        importance.to_csv(importance_file, sep=",", header=False, index=False)
     """
     # prediction
     # score = classifier[0].predict_proba(X)[:, 1]

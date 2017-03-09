@@ -9,8 +9,7 @@ def sieve(args):
     import os.path
     input_interaction = os.path.splitext(args.input[0])[0] + ".interaction"
     if len(args.input) == 1 and os.path.exists(input_interaction):
-        inter_array = np.genfromtxt(input_interaction,
-                                    delimiter=",", dtype=None)
+        inter_array = np.genfromtxt(input_interaction, comments=None, delimiter=",", dtype=None)
         inter_array = inter_array.tolist()
         inter_array = np.asarray(inter_array)
     else:
@@ -22,10 +21,10 @@ def sieve(args):
             quit()
 
     # Split data
-    interaction_name = inter_array[0, 2:]
+    interaction_name = inter_array[0, 2:].astype('str')
     data = inter_array[1:, :]
 
-    cpdname = data[:, 0]
+    cpdname = data[:, 0].astype('str')
     label = data[:, 1].astype('float')
     interactions = data[:, 2:].astype('float')
 
