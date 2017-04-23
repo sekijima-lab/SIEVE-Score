@@ -216,7 +216,7 @@ def num_molecule(x):
 if __name__ == '__main__':
     import sys
     x = sys.argv
-    if len(x) <= 5 and len(x) % 3 != 2:
+    if len(x) <= 5 or len(x) % 3 != 2:
         print("usage: n_actives, n_decoys, graph_title, graph_filename,"
               "legend, show, results(file, type, name)...")
     n_actives = num_molecule(x[1])
