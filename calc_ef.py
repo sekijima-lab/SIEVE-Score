@@ -1,110 +1,129 @@
-from sklearn.metrics import roc_curve, roc_auc_score
 import csv
 from os.path import splitext
-import sys
-import pandas as pd
 import numpy as np
 
 
-def calc_EF(n_actives, n_decoys, title, fname, onlyAUC, results):
-    results_file = results
-    names = [splitext(x)[0] for x in results_file]
+def main(n_actives, n_decoys, f_active, f_result, f_out=None):
 
-    aucs = []
-    ef10s = []
-    ef1s = []
+    if "mae" in splitext(f_result)[1]:
+        y, score = get_y_score_from_glide(f_result, f_active)
+    else:
+        y, score = get_y_score_from_result(f_result, f_active)
 
-    for i in range(len(results_file)):
-        y, score = GetYScoreFromResult(results_file[i])
-        auc_tmp = roc_auc_score(y, score)
+    # sort y, score
+    y = np.array(y)
+    score = np.array(score)
+    y = y[np.argsort(score)][::-1]
+    score = np.sort(score)[::-1]
+    print(y, score)
 
-        tpr, fpr = GetRates(y, score, n_actives, n_decoys)
-        auc = round((auc_tmp * tpr[-2] * fpr[-2] +
-                     (tpr[-2] + 1) * (1 - fpr[-2]) / 2.0), 3)
+    ef10 = calc_ef(y, n_actives, n_decoys, 0.1)
+    ef1 = calc_ef(y, n_actives, n_decoys, 0.01)
 
-        ef10 = tpr[len(tpr) // 10] * 10
-        ef1 = tpr[len(tpr) // 100] * 100
+    print("EF_01, "+str(ef1))
+    print("EF_10, "+str(ef10))
 
-        aucs.append(auc)
-        ef10s.append(ef10)
-        ef1s.append(ef1)
-
-    SaveAUCEF(fname, results, names, onlyAUC, aucs, ef10s, ef1s)
+    if f_out is not None:
+        with open(f_out, "w") as f:
+            f.write("EF_01," + str(ef1) + "\n")
+            f.write("EF_10," + str(ef10) + "\n")
 
 
-def GetYScoreFromResult(filename):
-    res = []
+def get_active_from_activefile(f_active):
 
-    data = csv.reader(open(filename, 'rb'), delimiter=',', quotechar='#')
+    actives = csv.reader(open(f_active, 'rb'), delimiter=',', quotechar='#')
+    ret = []
+
+    for line in actives:
+        if float(line[1]) > 0:
+            ret.append(line[0])
+
+    return ret
+
+
+def get_y_score_from_result(f_result, f_active):
+
+    data = csv.reader(open(f_result, 'rb'), delimiter=',', quotechar='#')
+    actives = get_active_from_activefile(f_active)
+
+    ys = []
+    scores = []
 
     for line in data:
-        res.append((int(line[3]), float(line[2])))
-        # y=line[3], score=line[2]
+        name = line[0]
+        val = float(line[1])
 
-    res = sorted(res, key=lambda x: x[1], reverse=True)
-    y = [x[0] for x in res]
-    score = [x[1] for x in res]
-
-    return y, score
-
-
-def GetRates(y, scores, n_actives, n_decoys):
-
-    tpr = [0.0]  # true positive rate
-    fpr = [0.0]  # false positive rate
-
-    foundactives = 0.0
-    founddecoys = 0.0
-    for idx, score in enumerate(scores):
-        if y[idx] == 1:
-            foundactives += 1.0
+        if name in actives:
+            ys.append(1)
         else:
-            founddecoys += 1.0
+            ys.append(0)
+        scores.append(val)
 
-        tpr.append(foundactives / float(n_actives))
-        fpr.append(founddecoys / float(n_decoys))
-
-    tpr.append(1.0)
-    fpr.append(1.0)  # add [1.0, 1.0]
-
-    return tpr, fpr
+    return ys, scores
 
 
-def SaveAUCEF(fname, results, names, onlyAUC, aucs, ef10s, ef1s):
+def get_y_score_from_glide(f_result, f_active):
 
-    with open(fname, "w") as f_result:
-        f_result.write(str(title) + "\n")
-        for i in range(len(results)):
-            f_result.write(names[i] + "_AUC, " +
-                           str(aucs[i]) + "\n")
+    from schrodinger import structure as sts
 
-            if not onlyAUC:
-                f_result.write(names[i] + "_EF10, " + str(ef10s[i]) + "\n")
-                f_result.write(names[i] + "_EF1, " + str(ef1s[i]) + "\n")
+    reader = sts.StructureReader(f_result)
+    actives = get_active_from_activefile(f_active)
 
-    x = [aucs[7 * i:7 * (i + 1)] for i in range(7)]
+    ys = []
+    scores = []
+    for st in reader:
+        prop = st.property
 
-    df = pd.DataFrame(x)
-    df.columns = [0.2, 0.5, 1, 2, 5, 10, 20]
-    df.index = [0.125, 0.25, 0.5, 1, 2, 4, 8]
-    df.to_csv(splitext(fname)[0] + ".csv")
+        if 'r_i_docking_score' not in prop.keys():  # protein, or error?
+            continue
 
-if __name__ == '__main__':
+        name = prop['s_m_title']
+        val = float(prop["r_i_docking_score"])
+
+        if name in actives:
+            ys.append(1)
+        else:
+            ys.append(0)
+        scores.append(val)
+
+    reader.close()
+    return ys, scores
+
+
+def calc_ef(y, n_actives, n_decoys, threshold=0.1):
+
+    if not 0 <= threshold <= 1:
+        print("Error in calc_ef: threshold must be 0<x<1")
+        quit()
+
+    total = n_actives+n_decoys
+    random_rate = float(n_actives) / total
+    screen_range = int(np.ceil(total * threshold))
+
+    screen_rate = float(sum(y[:screen_range])) / screen_range
+
+    return screen_rate / random_rate
+
+
+def init():
     import sys
     x = sys.argv
-    if len(x) <= 5 and len(x) % 3 != 2:
-        print("usage: n_actives, n_decoys, graph_title, graph_filename,"
-              "legend, show, glidefile, results(file, type, name)...")
+    if len(x) <= 4:
+        print("usage: n_actives, n_decoys, f_active, f_result [, f_out]")
+        quit()
 
     n_actives = int(x[1])
     n_decoys = int(x[2])
-    title = x[3]
-    fname = x[4]
-    if x[5] in ["False", "false", "No", "no", "0", False]:
-        onlyAUC = False
+    f_active = x[3]
+    f_result = x[4]
+
+    if len(x) == 6:
+        f_out = x[5]
     else:
-        onlyAUC = True
+        f_out = None
 
-    results = x[6:]
+    main(n_actives, n_decoys, f_active, f_result, f_out)
 
-    calc_AUC(n_actives, n_decoys, title, fname, onlyAUC, results)
+
+if __name__ == '__main__':
+    init()
