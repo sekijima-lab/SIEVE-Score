@@ -1,2 +1,6 @@
 *.pyc
 *~
+evaluation/results
+*.png
+*.csv
+rf-score-vs
