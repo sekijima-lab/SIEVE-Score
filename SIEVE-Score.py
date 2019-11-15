@@ -1,41 +1,74 @@
+#!/usr/bin/env python3
+
 import logging
 import numpy as np
+import pandas as pd
 
+def load_interaction(f_name, hits, ignore=None):
+    import os.path
+    input_interaction = os.path.splitext(f_name)[0] + ".interaction"
+    if os.path.exists(input_interaction):
+        inter_array = pd.read_csv(input_interaction, index_col=0)
+    else:
+        from read_interaction import read_interaction
+        data = np.array(read_interaction(f_name, hits))
+        inter_array = pd.DataFrame(data[1:, 1:], index=data[1:,0].astype(str), columns=data[0,1:].astype(str), dtype=np.float64)
+
+    # Split data
+    
+    interaction_name = inter_array.iloc[0, 2:].index.tolist()
+    data = inter_array.iloc[1:, :]
+
+    if ignore is not None:
+        ignored = open(ignore, "r").read().split()
+        data = data[~data.index.isin(ignored)]
+
+    cpdname = data.index.values
+    label = data.loc[:, "ishit"].values
+    interactions = data.iloc[:, 1:].values
+        
+    return cpdname, label, interaction_name, interactions
 
 def sieve(args):
     logger = logging.getLogger(__name__)
 
     # read interaction
-    import os.path
-    input_interaction = os.path.splitext(args.input[0])[0] + ".interaction"
-    if len(args.input) == 1 and os.path.exists(input_interaction):
-        inter_array = np.genfromtxt(input_interaction, comments=None, delimiter=",", dtype=None)
-        inter_array = inter_array.tolist()
-        inter_array = np.asarray(inter_array)
-    else:
-        from read_interaction import read_interaction
-        inter_array = np.array(read_interaction(args.input, args.hits))
-        if args.inter_only:
-            logger.info("Saved interaction data.")
-            logger.info("\n****Process Complete.****")
-            quit()
+    cpdname, label, interaction_name, interactions = load_interaction(args.input, args.hits, args.ignore)
 
-    # Split data
-    interaction_name = inter_array[0, 2:].astype('str')
-    data = inter_array[1:, :]
-
-    cpdname = data[:, 0].astype('str')
-    label = data[:, 1].astype('float')
-    interactions = data[:, 2:].astype('float')
-
+    if args.mode == "interaction":
+        logger.info("Saved interaction data.")
+        logger.info("\n****Process Complete.****")
+        quit()
+    elif args.mode == "screen":
+        cpdname_t, label_t, interaction_name_t, interactions_t = load_interaction(args.testdata, args.testhits)
+        
     logger.info('Read interaction data.')
-    logger.debug('interaction_array:\n' + str(inter_array))
 
     # Calc SIEVE-Score
-    from scoring import scoring_eval, scoring_param_search, scoring_compareSVMRF
-    # scoring_param_search(cpdname, label, interaction_name, interactions, args)
-    scoring_eval(cpdname, label, interaction_name, interactions, args)
-    # scoring_compareSVMRF(cpdname, label, interaction_name, interactions, args)
+    if args.mode == "paramsearch":
+        from scoring import scoring_param_search
+        logger.info("SIEVE: main: Do parameter search")
+        scoring_param_search(cpdname, label, interaction_name, interactions, args)
+    elif args.mode == "comparesvm":
+        from scoring import scoring_compareSVMRF
+        logger.info("SIEVE: main: Do compare SVM and RF")
+        scoring_compareSVMRF(cpdname, label, interaction_name, interactions, args)
+    elif args.mode == "cv":
+        from scoring import scoring_eval
+        logger.info("SIEVE: main: Do evaluation")
+        scoring_eval(cpdname, label, interaction_name, interactions, args)
+    elif args.mode == "datasize":
+        from scoring import lessdata_auc_ef
+        logger.info("SIEVE: main: Do datasize analysis")
+        lessdata_auc_ef(cpdname, label, interaction_name, interactions, args)
+    elif args.mode == "screen":
+        from screening import screening
+        logger.info("SIEVE: main: Do screening")
+        screening(cpdname, label, interaction_name, interactions,
+                  cpdname_t, label_t, interaction_name_t, interactions_t, args)
+    else:
+        logger.info("SIEVE: main: Unknown mode?")
+        quit()
 
     # plot on PCA space, disabled
     # from plotting import plotting

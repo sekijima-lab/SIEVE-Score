@@ -1,6 +1,24 @@
 import csv
 from os.path import splitext
 import numpy as np
+import sys
+
+
+def test():
+    n_actives = 100
+    n_decoys = 4900
+    
+    y = [1]*100+[0]*4900
+    print(calc_ef(y, n_actives, n_decoys, threshold=0.1)) # 10
+    print(calc_ef(y, n_actives, n_decoys, threshold=0.01)) # 50
+
+    y = [0]*4900+[1]*100
+    print(calc_ef(y, n_actives, n_decoys, threshold=0.1)) # 0
+    print(calc_ef(y, n_actives, n_decoys, threshold=0.01)) # 0
+
+    y = [1]*50+[0]*4900+[1]*50
+    print(calc_ef(y, n_actives, n_decoys, threshold=0.1)) # 5
+    print(calc_ef(y, n_actives, n_decoys, threshold=0.01)) # 50 
 
 
 def main(n_actives, n_decoys, f_active, f_result, f_out=None):
@@ -11,22 +29,18 @@ def main(n_actives, n_decoys, f_active, f_result, f_out=None):
         y, score = get_y_score_from_result(f_result, f_active)
 
     # sort y, score
-    y = np.array(y)
-    score = np.array(score)
-    y = y[np.argsort(score)][::-1]
-    score = np.sort(score)[::-1]
     print(y, score)
 
     ef10 = calc_ef(y, n_actives, n_decoys, 0.1)
     ef1 = calc_ef(y, n_actives, n_decoys, 0.01)
 
-    print("EF_01, "+str(ef1))
-    print("EF_10, "+str(ef10))
+    if f_out != sys.stdout:
+        print("EF_01," + str(ef1))
+        print("EF_10," + str(ef10))
 
-    if f_out is not None:
-        with open(f_out, "w") as f:
-            f.write("EF_01," + str(ef1) + "\n")
-            f.write("EF_10," + str(ef10) + "\n")
+    with open(f_out, 'w') as f_out:
+        f_out.write("EF_01," + str(ef1) + "\n")
+        f_out.write("EF_10," + str(ef10) + "\n")
 
 
 def get_active_from_activefile(f_active):
@@ -59,14 +73,25 @@ def get_y_score_from_result(f_result, f_active):
             ys.append(0)
         scores.append(val)
 
-    return ys, scores
+    # reverse
+    y = np.array(ys)
+    score = np.array(scores)
+    y = y[np.argsort(score)][::-1]
+    score = np.sort(score)[::-1]
+
+    return y, score
 
 
 def get_y_score_from_glide(f_result, f_active):
 
-    from schrodinger import structure as sts
+    try:
+        from schrodinger import structure
+    except ImportError:
+        print("if you want to use this function, " +
+              "please execute from $SCHRODINGER/run python.")
+        quit()
 
-    reader = sts.StructureReader(f_result)
+    reader = structure.StructureReader(f_result)
     actives = get_active_from_activefile(f_active)
 
     ys = []
@@ -87,42 +112,97 @@ def get_y_score_from_glide(f_result, f_active):
         scores.append(val)
 
     reader.close()
-    return ys, scores
+
+    # not reverse
+    y = np.array(ys)
+    score = np.array(scores)
+    y = y[np.argsort(score)]
+    score = np.sort(score)
+
+    return y, score
 
 
-def calc_ef(y, n_actives, n_decoys, threshold=0.1):
+def count_actives_decoys(f_glide, f_active):
+    try:
+        from schrodinger import structure
+    except ImportError:
+        print("if you want to count molecules of glide result, " +
+              "please execute from $SCHRODINGER/run python.")
+        quit()
+
+    reader = structure.StructureReader(f_glide)
+    actives = get_active_from_activefile(f_active)
+    n_actives = n_decoys = 0
+
+    for st in reader:
+        prop = st.property
+
+        if 'r_i_docking_score' not in prop.keys():  # protein, or error?
+            continue
+        elif prop['s_m_title'] in actives:
+            n_actives += 1
+        else:
+            n_decoys += 1
+
+    reader.close()
+    return n_actives, n_decoys
+
+
+def calc_ef(sorted_y, n_actives=None, n_decoys=None, threshold=0.1):
 
     if not 0 <= threshold <= 1:
         print("Error in calc_ef: threshold must be 0<x<1")
         quit()
 
-    total = n_actives+n_decoys
+    y = np.array(sorted_y)
+    if n_actives is None:
+        n_actives = np.sum(y==1)
+    if n_decoys is None:
+        n_decoys = np.sum(y==0)
+    total = n_actives + n_decoys
+
     random_rate = float(n_actives) / total
     screen_range = int(np.ceil(total * threshold))
-
     screen_rate = float(sum(y[:screen_range])) / screen_range
 
     return screen_rate / random_rate
 
 
-def init():
-    import sys
-    x = sys.argv
-    if len(x) <= 4:
-        print("usage: n_actives, n_decoys, f_active, f_result [, f_out]")
+def parse_args():
+    import argparse
+
+    parser = argparse.ArgumentParser(prog="SIEVE-Score_v1.5-analysis",
+                                     description="Calculate EF from result",
+                                     fromfile_prefix_chars='@')
+    parser.add_argument("input", help="input Glide pv file or result csv")
+    parser.add_argument("-a", "--active", required=True,
+                        help="active definition file")
+    parser.add_argument("-o", "--output", nargs="?",
+                        default=sys.stdout, help="output file")
+    parser.add_argument("-n", "--number", nargs=2, default=None,
+                        help="number of actives, decoys (2 integers), prior to -d")
+    parser.add_argument("-d", "--dock", nargs="?",
+                        default=None, help="dock result file for number of actives, decoys")
+
+    args = parser.parse_args(sys.argv[1:])
+
+    if args.number is not None:
+        n_actives, n_decoys = args.number
+        n_actives = int(n_actives)
+        n_decoys = int(n_decoys)
+    elif args.dock is not None:
+        n_actives, n_decoys = count_actives_decoys(args.dock, args.active)
+    else:
+        print("Either of -n or -d is needed.")
         quit()
 
-    n_actives = int(x[1])
-    n_decoys = int(x[2])
-    f_active = x[3]
-    f_result = x[4]
+    return args, n_actives, n_decoys
 
-    if len(x) == 6:
-        f_out = x[5]
-    else:
-        f_out = None
 
-    main(n_actives, n_decoys, f_active, f_result, f_out)
+def init():
+    args, n_actives, n_decoys = parse_args()
+
+    main(n_actives, n_decoys, args.active, args.input, args.output)
 
 
 if __name__ == '__main__':
