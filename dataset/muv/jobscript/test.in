@@ -1,0 +1,4 @@
+GRIDFILE   /gs/hs0/tga-science/yasuo/SIEVE-Score/dataset/muv/TEST/grid.zip
+LIGANDFILE   /gs/hs0/tga-science/yasuo/SIEVE-Score/dataset/muv/TEST/TEST_ligands.maegz
+PRECISION   SP
+WRITE_RES_INTERACTION   True

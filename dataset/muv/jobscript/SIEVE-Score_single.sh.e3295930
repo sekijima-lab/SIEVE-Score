@@ -1,0 +1,20 @@
+Traceback (most recent call last):
+  File "../../../SIEVE-Score.py", line 73, in <module>
+    sieve(args)
+  File "../../../SIEVE-Score.py", line 17, in sieve
+    inter_array = np.array(read_interaction(args.input, args.hits))
+  File "/gs/hs0/tga-science/yasuo/SIEVE-Score/read_interaction.py", line 71, in read_interaction
+    reader = structure.StructureReader(inputfiles[0])
+  File "/gs/hs0/tga-science/Schrodinger/Schrodinger_2017-4/internal/lib/python2.7/site-packages/schrodinger/structure.py", line 5434, in __init__
+    raise IOError("File does not exist: %s" % filename)
+IOError: File does not exist: glide-dock_best_pv.maegz
+Traceback (most recent call last):
+  File "../../../SIEVE-Score.py", line 73, in <module>
+    sieve(args)
+  File "../../../SIEVE-Score.py", line 17, in sieve
+    inter_array = np.array(read_interaction(args.input, args.hits))
+  File "/gs/hs0/tga-science/yasuo/SIEVE-Score/read_interaction.py", line 71, in read_interaction
+    reader = structure.StructureReader(inputfiles[0])
+  File "/gs/hs0/tga-science/Schrodinger/Schrodinger_2017-4/internal/lib/python2.7/site-packages/schrodinger/structure.py", line 5434, in __init__
+    raise IOError("File does not exist: %s" % filename)
+IOError: File does not exist: glide-dock_best_pv.maegz

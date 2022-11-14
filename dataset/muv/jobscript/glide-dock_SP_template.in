@@ -1,0 +1,4 @@
+GRIDFILE   /gs/hs0/tga-science/yasuo/SIEVE-Score/dataset/muv/__PROTEIN__/grid.zip
+LIGANDFILE   /gs/hs0/tga-science/yasuo/SIEVE-Score/dataset/muv/__PROTEIN__/__PROTEIN___ligands.maegz
+PRECISION   SP
+WRITE_RES_INTERACTION   True

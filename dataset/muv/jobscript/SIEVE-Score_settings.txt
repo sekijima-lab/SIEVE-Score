@@ -1,0 +1,14 @@
+-i
+glide-dock_best_pv.maegz
+-l
+SIEVE-Score.log
+--hits
+actives.txt
+--active
+actives_final.sdf
+--decoy
+decoys_final.sdf
+-z
+-d
+-t
+SIEVE-Score: akt1
