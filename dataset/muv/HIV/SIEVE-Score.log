@@ -1,0 +1,21 @@
+2018-10-16 03:46:59,975: INFO:options:
+Namespace(active=29, annotate=False, debug=True, decoy=14873, hits='actives.txt', input=['glide-dock_best_pv.maegz'], inter_only=False, log='SIEVE-Score.log', mode='cv', model='RF', n_iter=5, n_splits=5, nprocs=14, output='SIEVE-Score.csv', propose=100000, random_state=None, reverse=False, title='SIEVE-Score: HIV', train_size=0.9, use_docking_score=False, zeroneg=True)
+2018-10-16 03:47:04,922: INFO:Read interaction data.
+2018-10-16 03:47:04,922: DEBUG:interaction_array:
+[['# title' 'ishit' 'A442_vdw' ..., 'B426_coul' 'B426_hbond'
+  'docking_score']
+ ['0.0 CID2255695' '0' '-0.0910518950062' ..., '-0.00707831124401' '0.0'
+  '-7.45453569412']
+ ['0.0 CID3238365' '0' '-0.0611858617726' ..., '0.088024380504' '0.0'
+  '-7.20572524213']
+ ..., 
+ ['0.0 CID2249348' '0' '-0.0585521768126' ..., '0.0147109130003' '0.0'
+  '-0.645772254041']
+ ['0.0 CID2282473' '0' '-0.0737467215343' ..., '0.0118341340904' '0.0'
+  '-0.562485433399']
+ ['0.0 CID2162137' '0' '-0.0647269297649' ..., '-0.0200987723658' '0.0'
+  '0.465718606043']]
+2018-10-16 03:47:15,766: INFO:SIEVE: main: Do evaluation
+2018-10-16 03:49:21,551: INFO:
+*****Process Complete.*****
+

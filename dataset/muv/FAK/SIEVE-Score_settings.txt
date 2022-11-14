@@ -1,0 +1,16 @@
+-i
+glide-dock_best_pv.maegz
+-l
+SIEVE-Score.log
+--hits
+actives.txt
+-z
+-d
+--n_iter
+5
+--active
+29
+--decoy
+14615
+-t
+SIEVE-Score: FAK

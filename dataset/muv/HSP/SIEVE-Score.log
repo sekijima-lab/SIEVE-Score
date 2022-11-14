@@ -1,0 +1,20 @@
+2018-10-16 03:47:03,798: INFO:options:
+Namespace(active=28, annotate=False, debug=True, decoy=14383, hits='actives.txt', input=['glide-dock_best_pv.maegz'], inter_only=False, log='SIEVE-Score.log', mode='cv', model='RF', n_iter=5, n_splits=5, nprocs=14, output='SIEVE-Score.csv', propose=100000, random_state=None, reverse=False, title='SIEVE-Score: HSP', train_size=0.9, use_docking_score=False, zeroneg=True)
+2018-10-16 03:47:10,087: INFO:Read interaction data.
+2018-10-16 03:47:10,088: DEBUG:interaction_array:
+[['# title' 'ishit' 'A118_vdw' ..., 'A97_coul' 'A97_hbond' 'docking_score']
+ ['0.0 CID664665' '0' '-0.0365886930405' ..., '0.0617387307129' '0.0'
+  '-8.98154989587']
+ ['0.0 CID645552' '0' '-0.0377220484557' ..., '0.130666842059' '0.0'
+  '-8.97698459555']
+ ..., 
+ ['0.0 CID3616' '0' '-0.00852933360676' ..., '0.0580198901069' '0.0'
+  '-0.292518095739']
+ ['0.0 CID659875' '0' '-0.0133176331411' ..., '0.126962797834' '0.0'
+  '0.00678985014494']
+ ['0.0 CID6400940' '0' '-0.0106388331908' ..., '0.0187463147686' '0.0'
+  '0.23655289435']]
+2018-10-16 03:47:15,759: INFO:SIEVE: main: Do evaluation
+2018-10-16 03:49:19,876: INFO:
+*****Process Complete.*****
+

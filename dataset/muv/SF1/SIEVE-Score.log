@@ -1,0 +1,21 @@
+2018-10-16 03:47:04,507: INFO:options:
+Namespace(active=30, annotate=False, debug=True, decoy=14698, hits='actives.txt', input=['glide-dock_best_pv.maegz'], inter_only=False, log='SIEVE-Score.log', mode='cv', model='RF', n_iter=5, n_splits=5, nprocs=14, output='SIEVE-Score.csv', propose=100000, random_state=None, reverse=False, title='SIEVE-Score: SF1', train_size=0.9, use_docking_score=False, zeroneg=True)
+2018-10-16 03:47:09,384: INFO:Read interaction data.
+2018-10-16 03:47:09,384: DEBUG:interaction_array:
+[['# title' 'ishit' 'A258_vdw' ..., 'A453_coul' 'A453_hbond'
+  'docking_score']
+ ['0.0 CID3243454' '0' '-0.0359292376678' ..., '0.0292234086055' '0.0'
+  '-10.4522512937']
+ ['0.0 CID664444' '0' '-0.0304138359478' ..., '0.0447432810613' '0.0'
+  '-10.2095441838']
+ ..., 
+ ['0.0 CID5389733' '0' '-0.0886632678466' ..., '-0.00635107908292' '0.0'
+  '-0.96425537653']
+ ['0.0 CID659875' '0' '-0.0545397449438' ..., '-0.0134618987909' '0.0'
+  '-0.779492476883']
+ ['0.0 CID660046' '0' '-2.04244899233' ..., '0.0158252730789' '0.0'
+  '-0.299933565387']]
+2018-10-16 03:47:15,763: INFO:SIEVE: main: Do evaluation
+2018-10-16 03:49:31,041: INFO:
+*****Process Complete.*****
+
