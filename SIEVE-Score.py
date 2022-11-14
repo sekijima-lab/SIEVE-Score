@@ -3,6 +3,7 @@
 import logging
 import numpy as np
 import pandas as pd
+import scoring
 
 def load_interaction(f_name, hits, ignore=None):
     import os.path
@@ -46,21 +47,17 @@ def sieve(args):
 
     # Calc SIEVE-Score
     if args.mode == "paramsearch":
-        from scoring import scoring_param_search
         logger.info("SIEVE: main: Do parameter search")
-        scoring_param_search(cpdname, label, interaction_name, interactions, args)
+        scoring.scoring_param_search(cpdname, label, interaction_name, interactions, args)
     elif args.mode == "comparesvm":
-        from scoring import scoring_compareSVMRF
         logger.info("SIEVE: main: Do compare SVM and RF")
-        scoring_compareSVMRF(cpdname, label, interaction_name, interactions, args)
+        scoring.scoring_compareSVMRF(cpdname, label, interaction_name, interactions, args)
     elif args.mode == "cv":
-        from scoring import scoring_eval
         logger.info("SIEVE: main: Do evaluation")
-        scoring_eval(cpdname, label, interaction_name, interactions, args)
+        scoring.scoring_eval(cpdname, label, interaction_name, interactions, args)
     elif args.mode == "datasize":
-        from scoring import lessdata_auc_ef
         logger.info("SIEVE: main: Do datasize analysis")
-        lessdata_auc_ef(cpdname, label, interaction_name, interactions, args)
+        scoring.lessdata_auc_ef(cpdname, label, interaction_name, interactions, args)
     elif args.mode == "screen":
         from screening import screening
         logger.info("SIEVE: main: Do screening")
@@ -69,10 +66,6 @@ def sieve(args):
     else:
         logger.info("SIEVE: main: Unknown mode?")
         quit()
-
-    # plot on PCA space, disabled
-    # from plotting import plotting
-    # plotting(args, data, cpdname, score, label)
 
     print('\n*****Process Complete.*****\n')
     logger.info('\n*****Process Complete.*****\n')

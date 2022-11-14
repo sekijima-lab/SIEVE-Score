@@ -95,7 +95,7 @@ def do_screen(clf, X_train, X_test, y_train, y_test, cpd_names_test,
     else:
         result = pd.DataFrame({"name": cpd_names_test, "score": score, "ishit": y_test})
     result = result.sort_values("score", ascending=False)
-    result.to_csv(args.output, sep=",")
+    result.to_csv(args.output, sep=",", index=None)
 
     if y_test is None:
         return None

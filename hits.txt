@@ -1,5 +1,6 @@
+# is for comment. Comma-separated. 
+#compound-name,active-or-not
+#default:0; if want to make 0 negative, use -z option
 #positive,1
 #negative,-1
 #unknown,0
-#default:0
-
