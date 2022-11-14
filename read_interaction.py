@@ -16,9 +16,8 @@ def read_interaction_file(inputfile, residues, hits, result):
             continue
 
         inter.append(prop['s_m_title'])
-
-        if hits is not None and prop['s_m_title'] in hits["title"]:
-            i = hits[hits["title"] == prop["s_m_title"]][0][1]
+        if hits is not None and prop['s_m_title'] in hits.index:
+            i = hits.loc[prop["s_m_title"], :].iloc[0]
             inter.append(i)
         else:
             inter.append(0)
@@ -103,7 +102,7 @@ def read_interaction(inputfile, hitsfile):
     
     if hitsfile is None:
         hits = None
-    if splitext(hitsfile)[1] in [".mae", ".maegz", ".gz"]:
+    elif splitext(hitsfile)[1] in [".mae", ".maegz", ".gz"]:
         hits = read_label_mae(hitsfile, 1)
     elif splitext(hitsfile)[1] in [".ism", ".smi"]:
         hits = read_label_smi(hitsfile, 1)

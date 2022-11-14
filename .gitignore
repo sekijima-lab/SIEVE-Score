@@ -1,6 +1,33 @@
 *.pyc
 *~
-evaluation/results
-*.png
-*.csv
+__pycache__
+.DS_Store
+._.DS_Store
+
+# not include RF-Score-VS
 rf-score-vs
+curation.py
+
+# no test env result
+FAK_backup_2JKQ
+FAK_DUDE
+CAG_backup
+
+# no exec logs
+logs/
+
+# not include prepwizard and ligprep
+prepwizard/
+prepwizard.log
+*_ligands.log
+*_ligand-dropped-indices.txt
+
+# to avoid license issue, not include glide raw result
+*.mae
+*.maegz
+*_subjob_poses.zip
+glide-grid_*
+grid.zip
+glide-dock.*
+glide-dock_subjobs.*
+*.rept

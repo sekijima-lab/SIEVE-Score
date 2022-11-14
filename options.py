@@ -108,9 +108,8 @@ def num_molecule(x):
         try:
             from schrodinger import structure
         except ImportError:
-            logger.exception("error in p_optimize. " +
-                             "if you want to count molecules of file, " +
-                             "please run in schrod env.",
+            logger.exception("if you want to count number of molecules in file, " +
+                             "please run in schrodinger env.",
                              exc_info=True)
             quit()
 
