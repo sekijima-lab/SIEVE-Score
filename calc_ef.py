@@ -1,10 +1,12 @@
 import csv
-from os.path import splitext
-import numpy as np
 import sys
+from os.path import splitext
+
+import numpy as np
 
 
 def test():
+    """For auto-testing"""
     n_actives = 100
     n_decoys = 4900
     
@@ -149,9 +151,19 @@ def count_actives_decoys(f_glide, f_active):
 
 
 def calc_ef(sorted_y, n_actives=None, n_decoys=None, threshold=0.1):
+    """Calculate enrichment factor.
 
+    Args:
+        sorted_y (array or list-like): Your screen result Y. Higher score should be first.
+        n_actives ([type], optional): Number of actives. If not supplied, automatically use number of label==1.
+        n_decoys ([type], optional): Number of actives. If not supplied, automatically use number of label==0.
+        threshold (float, optional): x% enrichment factor in 0--1 value. Defaults to 0.1.
+
+    Returns:
+        float: (threshold*100)% enrichment factor.
+    """
     if not 0 <= threshold <= 1:
-        print("Error in calc_ef: threshold must be 0<x<1")
+        print("Error in calc_ef: threshold must be 0<=x<=1")
         quit()
 
     y = np.array(sorted_y)

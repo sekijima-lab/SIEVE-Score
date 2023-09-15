@@ -1,9 +1,9 @@
-from sklearn.metrics import roc_curve, roc_auc_score
 import csv
-from os.path import splitext
 import sys
+from os.path import splitext
+
 import pandas as pd
-import numpy as np
+from sklearn.metrics import roc_auc_score
 
 
 def calc_AUC(n_actives, n_decoys, title, fname, onlyAUC, results):
@@ -14,8 +14,8 @@ def calc_AUC(n_actives, n_decoys, title, fname, onlyAUC, results):
     ef10s = []
     ef1s = []
 
-    for i in range(len(results_file)):
-        y, score = GetYScoreFromResult(results_file[i])
+    for i, res in enumerate(results_file):
+        y, score = GetYScoreFromResult(res)
         auc_tmp = roc_auc_score(y, score)
 
         tpr, fpr = GetRates(y, score, n_actives, n_decoys)
@@ -29,7 +29,7 @@ def calc_AUC(n_actives, n_decoys, title, fname, onlyAUC, results):
         ef10s.append(ef10)
         ef1s.append(ef1)
 
-    SaveAUCEF(fname, results, names, onlyAUC, aucs, ef10s, ef1s)
+    SaveAUCEF(fname, title, results, names, onlyAUC, aucs, ef10s, ef1s)
 
 
 def GetYScoreFromResult(filename):
@@ -70,9 +70,9 @@ def GetRates(y, scores, n_actives, n_decoys):
     return tpr, fpr
 
 
-def SaveAUCEF(fname, results, names, onlyAUC, aucs, ef10s, ef1s):
+def SaveAUCEF(fname, title, results, names, onlyAUC, aucs, ef10s, ef1s):
 
-    with open(fname, "w") as f_result:
+    with open(fname, "w", encoding="utf-8") as f_result:
         f_result.write(str(title) + "\n")
         for i in range(len(results)):
             f_result.write(names[i] + "_AUC, " +
@@ -89,12 +89,13 @@ def SaveAUCEF(fname, results, names, onlyAUC, aucs, ef10s, ef1s):
     df.index = [0.125, 0.25, 0.5, 1, 2, 4, 8]
     df.to_csv(splitext(fname)[0] + ".csv")
 
-if __name__ == '__main__':
+def main():
+    USAGE = """usage: n_actives, n_decoys, graph_title, graph_filename,
+    isOnlyAUC, results(file, type, name)..."""
     import sys
     x = sys.argv
     if len(x) <= 5 and len(x) % 3 != 2:
-        print("usage: n_actives, n_decoys, graph_title, graph_filename,"
-              "legend, show, glidefile, results(file, type, name)...")
+        print(USAGE)
 
     n_actives = int(x[1])
     n_decoys = int(x[2])
@@ -108,3 +109,6 @@ if __name__ == '__main__':
     results = x[6:]
 
     calc_AUC(n_actives, n_decoys, title, fname, onlyAUC, results)
+
+if __name__ == "__main__":
+    main()
