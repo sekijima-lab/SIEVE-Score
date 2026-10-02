@@ -1,0 +1,215 @@
+[
+  {
+    "query": {
+      "package": {
+        "name": "cloudpickle",
+        "ecosystem": "PyPI"
+      },
+      "version": "3.1.2"
+    },
+    "result": {}
+  },
+  {
+    "query": {
+      "package": {
+        "name": "contourpy",
+        "ecosystem": "PyPI"
+      },
+      "version": "1.4.0"
+    },
+    "result": {}
+  },
+  {
+    "query": {
+      "package": {
+        "name": "cycler",
+        "ecosystem": "PyPI"
+      },
+      "version": "0.12.1"
+    },
+    "result": {}
+  },
+  {
+    "query": {
+      "package": {
+        "name": "fonttools",
+        "ecosystem": "PyPI"
+      },
+      "version": "4.65.0"
+    },
+    "result": {}
+  },
+  {
+    "query": {
+      "package": {
+        "name": "joblib",
+        "ecosystem": "PyPI"
+      },
+      "version": "1.6.0"
+    },
+    "result": {}
+  },
+  {
+    "query": {
+      "package": {
+        "name": "kiwisolver",
+        "ecosystem": "PyPI"
+      },
+      "version": "1.5.1"
+    },
+    "result": {}
+  },
+  {
+    "query": {
+      "package": {
+        "name": "matplotlib",
+        "ecosystem": "PyPI"
+      },
+      "version": "3.11.2"
+    },
+    "result": {}
+  },
+  {
+    "query": {
+      "package": {
+        "name": "narwhals",
+        "ecosystem": "PyPI"
+      },
+      "version": "2.26.0"
+    },
+    "result": {}
+  },
+  {
+    "query": {
+      "package": {
+        "name": "numpy",
+        "ecosystem": "PyPI"
+      },
+      "version": "2.5.3"
+    },
+    "result": {}
+  },
+  {
+    "query": {
+      "package": {
+        "name": "packaging",
+        "ecosystem": "PyPI"
+      },
+      "version": "26.3"
+    },
+    "result": {}
+  },
+  {
+    "query": {
+      "package": {
+        "name": "pandas",
+        "ecosystem": "PyPI"
+      },
+      "version": "3.0.6"
+    },
+    "result": {}
+  },
+  {
+    "query": {
+      "package": {
+        "name": "pillow",
+        "ecosystem": "PyPI"
+      },
+      "version": "12.3.0"
+    },
+    "result": {}
+  },
+  {
+    "query": {
+      "package": {
+        "name": "pyparsing",
+        "ecosystem": "PyPI"
+      },
+      "version": "3.3.2"
+    },
+    "result": {}
+  },
+  {
+    "query": {
+      "package": {
+        "name": "python-dateutil",
+        "ecosystem": "PyPI"
+      },
+      "version": "2.9.0.post0"
+    },
+    "result": {}
+  },
+  {
+    "query": {
+      "package": {
+        "name": "scikit-learn",
+        "ecosystem": "PyPI"
+      },
+      "version": "1.9.1"
+    },
+    "result": {}
+  },
+  {
+    "query": {
+      "package": {
+        "name": "scipy",
+        "ecosystem": "PyPI"
+      },
+      "version": "1.18.1"
+    },
+    "result": {}
+  },
+  {
+    "query": {
+      "package": {
+        "name": "six",
+        "ecosystem": "PyPI"
+      },
+      "version": "1.17.0"
+    },
+    "result": {}
+  },
+  {
+    "query": {
+      "package": {
+        "name": "threadpoolctl",
+        "ecosystem": "PyPI"
+      },
+      "version": "3.7.0"
+    },
+    "result": {}
+  },
+  {
+    "query": {
+      "package": {
+        "name": "scikit-learn",
+        "ecosystem": "PyPI"
+      },
+      "version": "0.18"
+    },
+    "result": {
+      "vulns": [
+        {
+          "id": "GHSA-jjw5-xxj6-pcv5",
+          "modified": "2024-10-22T18:05:32.284452Z"
+        },
+        {
+          "id": "GHSA-jw8x-6495-233v",
+          "modified": "2026-09-10T03:50:15.628224Z"
+        },
+        {
+          "id": "PYSEC-2020-107",
+          "modified": "2026-06-10T17:02:41.393980Z"
+        },
+        {
+          "id": "PYSEC-2020-108",
+          "modified": "2026-06-10T17:02:41.379397Z"
+        },
+        {
+          "id": "PYSEC-2024-110",
+          "modified": "2026-06-10T17:02:43.910139Z"
+        }
+      ]
+    }
+  }
+]

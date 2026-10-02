@@ -35,7 +35,7 @@ def calc_AUC(n_actives, n_decoys, title, fname, onlyAUC, results):
 def GetYScoreFromResult(filename):
     res = []
 
-    data = csv.reader(open(filename, 'rb'), delimiter=',', quotechar='#')
+    data = csv.reader(open(filename, 'r', newline='' ), delimiter=',', quotechar='#')
 
     for line in data:
         res.append((int(line[3]), float(line[2])))

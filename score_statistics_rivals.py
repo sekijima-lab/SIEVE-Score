@@ -76,7 +76,7 @@ def GetYScoreFromResult(filename, datatype, glide_y, glide_score):
     score = []
 
     try:
-        data = csv.reader(open(filename, 'rb'), delimiter=',', quotechar='#')
+        data = csv.reader(open(filename, 'r', newline='' ), delimiter=',', quotechar='#')
     except IOError:
         print("postprocess was cancelled. auc is the same as glide SP.")
         return glide_y, glide_score, "dock"

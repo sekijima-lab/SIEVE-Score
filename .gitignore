@@ -31,3 +31,6 @@ grid.zip
 glide-dock.*
 glide-dock_subjobs.*
 *.rept
+
+# isolated modern environment
+.venv/
