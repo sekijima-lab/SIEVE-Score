@@ -78,7 +78,7 @@ def GetYScoreFromResult(filename, datatype):
     y = []
     score = []
 
-    data = csv.reader(open(filename, 'rb'), delimiter=',', quotechar='#')
+    data = csv.reader(open(filename, 'r', newline='' ), delimiter=',', quotechar='#')
 
     if ('dock' in datatype or
             'fp' in datatype):

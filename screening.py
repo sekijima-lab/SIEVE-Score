@@ -3,6 +3,7 @@ import pandas as pd
 from os.path import splitext
 import logging
 logger = logging.getLogger(__name__)
+from models import random_forest, support_vector
 
 
 def write_importance(clf, interaction_name, args):
@@ -28,16 +29,12 @@ def report(y_test, y_score, docking_score, model_name, args):
     from sklearn.metrics import roc_curve, auc
     # Compute ROC curve and area the curve
     fpr, tpr, thresholds = roc_curve(y_test, y_score)
-    tpr = [0.0] + tpr
-    fpr = [0.0] + fpr
     roc_auc = auc(fpr, tpr)
     plt.plot(fpr, tpr, lw=1, label='%s (AUC = %0.3f)'
              % (model_name, roc_auc))
 
     # glide score, reverse order
     fpr, tpr, thresholds = roc_curve(y_test, docking_score * (-1))
-    tpr = [0.0] + tpr
-    fpr = [0.0] + fpr
     docking_auc = auc(fpr, tpr)
     plt.plot(fpr, tpr, 'r--', lw=1, label='Glide SP (AUC = %0.3f)' % docking_auc)
 
@@ -55,10 +52,9 @@ def report(y_test, y_score, docking_score, model_name, args):
     plt.clf()
 
     # EF
-    score_order = np.argsort(y_score)[::-1]
-    sorted_score = y_score[score_order]
+    score_order = np.argsort(-y_score, kind="stable")
     sorted_y = y_test[score_order]
-    docking_sorted_y = y_test[docking_score.argsort()]
+    docking_sorted_y = y_test[np.argsort(docking_score, kind="stable")]
     from calc_ef import calc_ef
     ef10 = calc_ef(sorted_y, args.active, args.decoy, threshold=0.1)
     ef1 = calc_ef(sorted_y, args.active, args.decoy, threshold=0.01)
@@ -74,13 +70,12 @@ def report(y_test, y_score, docking_score, model_name, args):
     return {"ef10":ef10, "ef1":ef1, "roc_auc":roc_auc}
 
 
-def do_screen(clf, X_train, X_test, y_train, y_test, cpd_names_test, 
+def do_screen(clf, X_train, X_test, y_train, y_test, cpd_names_test,
               model_name, interaction_name, docking_score_test, args):
-    from sklearn.metrics import roc_curve, auc
     clf = clf.fit(X_train, y_train)
     probas_ = clf.predict_proba(X_test)
-    
-    # record scores, having bug for some target?
+
+    # Record the requested class probability.
     if args.reverse == True:
         probas = probas_[:, 0]
     else:
@@ -94,41 +89,40 @@ def do_screen(clf, X_train, X_test, y_train, y_test, cpd_names_test,
         result = pd.DataFrame({"name": cpd_names_test, "score": score})
     else:
         result = pd.DataFrame({"name": cpd_names_test, "score": score, "ishit": y_test})
-    result = result.sort_values("score", ascending=False)
+    result = result.sort_values("score", ascending=False, kind="stable")
     result.to_csv(args.output, sep=",", index=None)
 
-    if y_test is None:
+    if y_test is None or np.unique(y_test).size < 2:
+        logger.info("No two-class test labels: scores saved without AUC/EF evaluation.")
         return None
     else:
         return report(y_test, score, docking_score_test, model_name, args)
-        
 
-def screening(cpd_names, label_data, interaction_name, features, 
+
+def screening(cpd_names, label_data, interaction_name, features,
               cpd_names_test, label_data_test, interaction_name_test, features_test, args):
 
-    random_state = 0
+    if list(interaction_name) != list(interaction_name_test):
+        raise ValueError("Training and test interaction feature names/order must match.")
     if args.model == "RF":
-        from sklearn.ensemble import RandomForestClassifier as RFC
-        clf = RFC(n_estimators=1000, criterion='gini', max_features=6, 
-                         n_jobs=args.nprocs)
+        clf = random_forest(args.random_state, args.nprocs)
         model_name = 'SIEVE-Score_RF'
 
     elif args.model == "SVM":
-        from sklearn.svm import SVC
-        clf = SVC(C=10, kernel="rbf", degree=3, gamma=0.1,
-                         cache_size=1000, probability=True)
+        clf = support_vector(args.random_state)
         model_name = 'SIEVE-SVM'
 
-    docking_score = features[:, -1]
     docking_score_test = features_test[:, -1]
-    X_train = features[:, :-1]
-    X_test = features_test[:, :-1]
+    X_train = features if args.use_docking_score else features[:, :-1]
+    X_test = features_test if args.use_docking_score else features_test[:, :-1]
 
     y_train = np.array([1 if x > 0 else 0 for x in label_data])
+    if np.unique(y_train).size != 2:
+        raise ValueError("Training labels must include both active and inactive compounds.")
     if label_data_test is None:
         y_test = None
     else:
         y_test = np.array([1 if x > 0 else 0 for x in label_data_test])
 
-    return do_screen(clf, X_train, X_test, y_train, y_test, cpd_names_test, 
+    return do_screen(clf, X_train, X_test, y_train, y_test, cpd_names_test,
               model_name, interaction_name, docking_score_test, args)

@@ -55,7 +55,7 @@ def plot_ROC(n_actives, n_decoys, title, outputname,
 def GetYScoreFromResult(filename, datatype):
     y = []
     score = []
-    data = csv.reader(open(filename, 'rb'), delimiter=',', quotechar='#')
+    data = csv.reader(open(filename, 'r', newline='' ), delimiter=',', quotechar='#')
 
     if datatype == 'dock':
         # print(filename)

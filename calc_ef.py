@@ -36,52 +36,29 @@ def main(n_actives, n_decoys, f_active, f_result, f_out=None):
     ef10 = calc_ef(y, n_actives, n_decoys, 0.1)
     ef1 = calc_ef(y, n_actives, n_decoys, 0.01)
 
-    if f_out != sys.stdout:
-        print("EF_01," + str(ef1))
-        print("EF_10," + str(ef10))
-
-    with open(f_out, 'w') as f_out:
-        f_out.write("EF_01," + str(ef1) + "\n")
-        f_out.write("EF_10," + str(ef10) + "\n")
+    text = "EF_01," + str(ef1) + "\nEF_10," + str(ef10) + "\n"
+    if f_out is None or f_out is sys.stdout:
+        sys.stdout.write(text)
+    else:
+        with open(f_out, 'w') as output:
+            output.write(text)
 
 
 def get_active_from_activefile(f_active):
 
-    actives = csv.reader(open(f_active, 'rb'), delimiter=',', quotechar='#')
-    ret = []
-
-    for line in actives:
-        if float(line[1]) > 0:
-            ret.append(line[0])
-
-    return ret
+    with open(f_active, newline="") as source:
+        return [line[0] for line in csv.reader(source, delimiter=',', quotechar='#')
+                if float(line[1]) > 0]
 
 
 def get_y_score_from_result(f_result, f_active):
-
-    data = csv.reader(open(f_result, 'rb'), delimiter=',', quotechar='#')
-    actives = get_active_from_activefile(f_active)
-
-    ys = []
-    scores = []
-
-    for line in data:
-        name = line[0]
-        val = float(line[1])
-
-        if name in actives:
-            ys.append(1)
-        else:
-            ys.append(0)
-        scores.append(val)
-
-    # reverse
-    y = np.array(ys)
-    score = np.array(scores)
-    y = y[np.argsort(score)][::-1]
-    score = np.sort(score)[::-1]
-
-    return y, score
+    actives = set(get_active_from_activefile(f_active))
+    with open(f_result, newline="") as source:
+        rows = list(csv.reader(source, delimiter=',', quotechar='#'))
+    y = np.array([int(line[0] in actives) for line in rows])
+    score = np.array([float(line[1]) for line in rows])
+    order = np.argsort(-score, kind='stable')
+    return y[order], score[order]
 
 
 def get_y_score_from_glide(f_result, f_active):
@@ -162,15 +139,16 @@ def calc_ef(sorted_y, n_actives=None, n_decoys=None, threshold=0.1):
     Returns:
         float: (threshold*100)% enrichment factor.
     """
-    if not 0 <= threshold <= 1:
-        print("Error in calc_ef: threshold must be 0<=x<=1")
-        quit()
+    if not 0 < threshold <= 1:
+        raise ValueError("threshold must satisfy 0 < threshold <= 1")
 
     y = np.array(sorted_y)
     if n_actives is None:
         n_actives = np.sum(y==1)
     if n_decoys is None:
         n_decoys = np.sum(y==0)
+    if n_actives <= 0 or n_decoys < 0:
+        raise ValueError("EF requires positive active and nonnegative decoy counts.")
     total = n_actives + n_decoys
 
     random_rate = float(n_actives) / total

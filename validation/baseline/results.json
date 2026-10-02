@@ -1,0 +1,209 @@
+{
+  "numpy": "1.11.3",
+  "python": "3.5.5 | packaged by conda-forge | (default, Jul 23 2018, 23:45:11) \n[GCC 4.2.1 Compatible Apple LLVM 6.1.0 (clang-602.0.53)]",
+  "sklearn": "0.18",
+  "failed_cases": [],
+  "scipy": "0.18.1",
+  "baseline": true,
+  "limits": {
+    "top_fraction_active_count_difference": 2,
+    "auc_abs_difference": 0.02,
+    "rank_spearman_min": 0.98,
+    "probability_mae": 0.02,
+    "probability_max_error": 0.1
+  },
+  "cases": [
+    {
+      "seed": 0,
+      "metrics": {
+        "ef10": 0.9993860845839017,
+        "auc": 0.5448988897248249,
+        "ef1_hits": 0,
+        "ef10_hits": 3,
+        "ef1": 0.0
+      },
+      "n_features": 156,
+      "with_docking": false,
+      "n_rows": 14651,
+      "target": "CAG",
+      "elapsed_seconds": 82.07311296463013,
+      "n_trees": 1000
+    },
+    {
+      "seed": 1,
+      "metrics": {
+        "ef10": 0.6662573897226012,
+        "auc": 0.49341472311515405,
+        "ef1_hits": 0,
+        "ef10_hits": 2,
+        "ef1": 0.0
+      },
+      "n_features": 156,
+      "with_docking": false,
+      "n_rows": 14651,
+      "target": "CAG",
+      "elapsed_seconds": 82.38946604728699,
+      "n_trees": 1000
+    },
+    {
+      "seed": 2,
+      "metrics": {
+        "ef10": 2.331900864029104,
+        "auc": 0.5252809885324761,
+        "ef1_hits": 0,
+        "ef10_hits": 7,
+        "ef1": 0.0
+      },
+      "n_features": 156,
+      "with_docking": false,
+      "n_rows": 14651,
+      "target": "CAG",
+      "elapsed_seconds": 84.42698979377747,
+      "n_trees": 1000
+    },
+    {
+      "seed": 0,
+      "metrics": {
+        "ef10": 1.9987721691678033,
+        "auc": 0.5036488612270023,
+        "ef1_hits": 0,
+        "ef10_hits": 6,
+        "ef1": 0.0
+      },
+      "n_features": 157,
+      "with_docking": true,
+      "n_rows": 14651,
+      "target": "CAG",
+      "elapsed_seconds": 83.96800708770752,
+      "n_trees": 1000
+    },
+    {
+      "seed": 0,
+      "metrics": {
+        "ef10": 3.3315205075912075,
+        "auc": 0.7206209105779717,
+        "ef1_hits": 3,
+        "ef10_hits": 10,
+        "ef1": 9.933783783783783
+      },
+      "n_features": 183,
+      "with_docking": false,
+      "n_rows": 14702,
+      "target": "FXI",
+      "elapsed_seconds": 84.22829699516296,
+      "n_trees": 1000
+    },
+    {
+      "seed": 1,
+      "metrics": {
+        "ef10": 2.9983684568320865,
+        "auc": 0.6779012177390039,
+        "ef1_hits": 4,
+        "ef10_hits": 9,
+        "ef1": 13.245045045045044
+      },
+      "n_features": 183,
+      "with_docking": false,
+      "n_rows": 14702,
+      "target": "FXI",
+      "elapsed_seconds": 83.03449702262878,
+      "n_trees": 1000
+    },
+    {
+      "seed": 2,
+      "metrics": {
+        "ef10": 3.6646725583503286,
+        "auc": 0.6784260268993094,
+        "ef1_hits": 4,
+        "ef10_hits": 11,
+        "ef1": 13.245045045045044
+      },
+      "n_features": 183,
+      "with_docking": false,
+      "n_rows": 14702,
+      "target": "FXI",
+      "elapsed_seconds": 86.85647296905518,
+      "n_trees": 1000
+    },
+    {
+      "seed": 0,
+      "metrics": {
+        "ef10": 2.9983684568320865,
+        "auc": 0.6525786077789895,
+        "ef1_hits": 4,
+        "ef10_hits": 9,
+        "ef1": 13.245045045045044
+      },
+      "n_features": 184,
+      "with_docking": true,
+      "n_rows": 14702,
+      "target": "FXI",
+      "elapsed_seconds": 89.28940510749817,
+      "n_trees": 1000
+    },
+    {
+      "seed": 0,
+      "metrics": {
+        "ef10": 2.068686680918301,
+        "auc": 0.6227759913007235,
+        "ef1_hits": 3,
+        "ef10_hits": 6,
+        "ef1": 10.301781994908584
+      },
+      "n_features": 129,
+      "with_docking": false,
+      "n_rows": 14838,
+      "target": "HIV",
+      "elapsed_seconds": 110.86506199836731,
+      "n_trees": 1000
+    },
+    {
+      "seed": 1,
+      "metrics": {
+        "ef10": 2.7582489078910677,
+        "auc": 0.6193274825886401,
+        "ef1_hits": 1,
+        "ef10_hits": 8,
+        "ef1": 3.433927331636195
+      },
+      "n_features": 129,
+      "with_docking": false,
+      "n_rows": 14838,
+      "target": "HIV",
+      "elapsed_seconds": 110.75861406326294,
+      "n_trees": 1000
+    },
+    {
+      "seed": 2,
+      "metrics": {
+        "ef10": 2.413467794404684,
+        "auc": 0.6597723658260005,
+        "ef1_hits": 2,
+        "ef10_hits": 7,
+        "ef1": 6.86785466327239
+      },
+      "n_features": 129,
+      "with_docking": false,
+      "n_rows": 14838,
+      "target": "HIV",
+      "elapsed_seconds": 128.79325318336487,
+      "n_trees": 1000
+    },
+    {
+      "seed": 0,
+      "metrics": {
+        "ef10": 1.7239055674319175,
+        "auc": 0.5723697844507417,
+        "ef1_hits": 2,
+        "ef10_hits": 5,
+        "ef1": 6.86785466327239
+      },
+      "n_features": 130,
+      "with_docking": true,
+      "n_rows": 14838,
+      "target": "HIV",
+      "elapsed_seconds": 105.94375896453857,
+      "n_trees": 1000
+    }
+  ]
+}

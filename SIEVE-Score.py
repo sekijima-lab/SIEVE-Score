@@ -1,34 +1,8 @@
 #!/usr/bin/env python3
 
 import logging
-import numpy as np
-import pandas as pd
 import scoring
-
-def load_interaction(f_name, hits, ignore=None):
-    import os.path
-    input_interaction = os.path.splitext(f_name)[0] + ".interaction"
-    if os.path.exists(input_interaction):
-        inter_array = pd.read_csv(input_interaction, index_col=0)
-    else:
-        from read_interaction import read_interaction
-        data = np.array(read_interaction(f_name, hits))
-        inter_array = pd.DataFrame(data[1:, 1:], index=data[1:,0].astype(str), columns=data[0,1:].astype(str), dtype=np.float64)
-
-    # Split data
-    
-    interaction_name = inter_array.iloc[0, 2:].index.tolist()
-    data = inter_array.iloc[1:, :]
-
-    if ignore is not None:
-        ignored = open(ignore, "r").read().split()
-        data = data[~data.index.isin(ignored)]
-
-    cpdname = data.index.values
-    label = data.loc[:, "ishit"].values
-    interactions = data.iloc[:, 1:].values
-        
-    return cpdname, label, interaction_name, interactions
+from interaction_io import load_interaction
 
 def sieve(args):
     logger = logging.getLogger(__name__)
@@ -42,7 +16,7 @@ def sieve(args):
         quit()
     elif args.mode == "screen":
         cpdname_t, label_t, interaction_name_t, interactions_t = load_interaction(args.testdata, args.testhits)
-        
+
     logger.info('Read interaction data.')
 
     # Calc SIEVE-Score

@@ -11,7 +11,7 @@ def Input_func():
                                      fromfile_prefix_chars='@')
 
     parser.add_argument("-i", "--input", required=True,
-                        help="input Glide pv file or .interation file")
+                        help="precomputed .interaction CSV (Glide conversion requires a separate environment)")
     parser.add_argument("-o", "--output", nargs="?",
                         default="SIEVE-Score.csv", help="output csv file")
     parser.add_argument("-l", "--log", nargs="?", default="SIEVE-Score.log",
@@ -54,14 +54,14 @@ def Input_func():
                         help="If set, only output interaction file.")
     parser.add_argument("--use_docking_score", action="store_true",
                         help="If set, add docking score for feature.")
-    parser.add_argument("--model", type=str, default="RF",
+    parser.add_argument("--model", type=str, default="RF", choices=["RF", "SVM"],
                         help="Model type, RF or SVM.")
     parser.add_argument("--reverse", action="store_true",
                         help="Reverse the final order.")
     parser.add_argument("--n_splits", type=int, default=5,
-                        help="datasize only. param for StratifiedShuffleSplit.")
+                        help="datasize only: number of stratified splits.")
     parser.add_argument("--random_state", type=int, default=None,
-                        help="datasize only. param for StratifiedShuffleSplit.")
+                        help="random seed for models and shuffled splits (default: unset).")
     parser.add_argument("--train_size", default="0.9",
                         help="datasize only. param for StratifiedShuffleSplit.")
     parser.add_argument("--n_iter", type=int, default=1,
@@ -73,6 +73,8 @@ def Input_func():
     parser.add_argument("--ignore", default=None,
                         help="ignore compounds file to train/test.")
     args = parser.parse_args(sys.argv[1:])
+    if args.mode == "screen" and args.testdata is None:
+        parser.error("screen mode requires --testdata")
     logger = set_log_info(args)
 
     if args.active is not None:
@@ -105,6 +107,7 @@ def num_molecule(x):
     if x.isdigit():
         return int(x)
     else:
+        logger = logging.getLogger(__name__)
         try:
             from schrodinger import structure
         except ImportError:

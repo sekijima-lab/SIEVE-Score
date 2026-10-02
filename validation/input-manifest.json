@@ -1,0 +1,29 @@
+[
+  {
+    "target": "CAG",
+    "path": "dataset/muv/CAG/glide-dock_best_pv.interaction",
+    "sha256": "6543ae3554d9359eb0de545d11fe4671cac4bb28fdd4944d90e9413bcbbdbf79",
+    "rows": 14651,
+    "positives": 30,
+    "features": 157,
+    "scope": "All supplied compounds; only the CSV header is excluded."
+  },
+  {
+    "target": "FXI",
+    "path": "dataset/muv/FXI/glide-dock_best_pv.interaction",
+    "sha256": "ac8d62aad2be1b72fb9850c78471f84b71bc82dee18157343c3a0820881d873f",
+    "rows": 14702,
+    "positives": 30,
+    "features": 184,
+    "scope": "All supplied compounds; only the CSV header is excluded."
+  },
+  {
+    "target": "HIV",
+    "path": "dataset/muv/HIV/glide-dock_best_pv.interaction",
+    "sha256": "f5f533766df09663dd9b0aa91f6016180322c8344e7c6bbfbcd64619f8a8cbba",
+    "rows": 14838,
+    "positives": 29,
+    "features": 130,
+    "scope": "All supplied compounds; only the CSV header is excluded."
+  }
+]
